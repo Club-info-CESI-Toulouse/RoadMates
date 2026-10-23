@@ -90,3 +90,4 @@ Après la phase 11 : préparation Partie B (plusieurs classes, toute l'école, m
 ## Avancement (mettre à jour en fin de phase, une ligne)
 - [ ] 1 · [ ] 2 · [ ] 3 · [ ] 4 · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8 · [ ] 9 · [ ] 10 · [ ] 11
 - Notes de reprise (3 lignes max) :
+  - Phase 1 : code + migration `supabase/migrations/20261023000000_foundations.sql` poussés, prod https://roadmates.vercel.app. Reste : projet Supabase (Yoan), `link`, `npm run db:push`, `npm run db:types`, env Vercel.
