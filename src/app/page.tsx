@@ -1,4 +1,4 @@
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -9,7 +9,9 @@ export default function Home() {
       <p className="text-center text-muted">
         Covoiturage régulier entre camarades de classe.
       </p>
-      <ThemeSwitcher />
+      <Link href="/compte" className="text-sm underline">
+        Mon compte
+      </Link>
     </main>
   );
 }

@@ -279,11 +279,37 @@ export type Database = {
           },
         ]
       }
+      verification_attempts: {
+        Row: {
+          attempts: number
+          email_hash: string
+          purpose: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          email_hash: string
+          purpose: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          email_hash?: string
+          purpose?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      establishment_id_for_email: { Args: { p_email: string }; Returns: string }
+      record_verification_failure: {
+        Args: { p_email_hash: string; p_purpose: string }
+        Returns: number
+      }
       visible_group_ids: { Args: never; Returns: string[] }
     }
     Enums: {
