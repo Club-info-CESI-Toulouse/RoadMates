@@ -26,6 +26,7 @@ async function UnreadBell() {
     .from("notifications")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId)
+    .neq("kind", "new_message")
     .is("read_at", null);
   return <BellLink unread={count ?? 0} />;
 }

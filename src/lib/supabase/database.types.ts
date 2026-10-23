@@ -207,7 +207,9 @@ export type Database = {
       }
       notifications: {
         Row: {
+          conversation_id: string | null
           created_at: string
+          delivered_at: string | null
           id: string
           kind: string
           payload: Json
@@ -216,7 +218,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          conversation_id?: string | null
           created_at?: string
+          delivered_at?: string | null
           id?: string
           kind: string
           payload?: Json
@@ -225,7 +229,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          conversation_id?: string | null
           created_at?: string
+          delivered_at?: string | null
           id?: string
           kind?: string
           payload?: Json
@@ -234,6 +240,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "notifications_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "notifications_request_id_fkey"
             columns: ["request_id"]
@@ -254,22 +267,28 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string
+          email_enabled: boolean
           group_id: string | null
           id: string
+          push_enabled: boolean
           updated_at: string
         }
         Insert: {
           created_at?: string
           display_name: string
+          email_enabled?: boolean
           group_id?: string | null
           id: string
+          push_enabled?: boolean
           updated_at?: string
         }
         Update: {
           created_at?: string
           display_name?: string
+          email_enabled?: boolean
           group_id?: string | null
           id?: string
+          push_enabled?: boolean
           updated_at?: string
         }
         Relationships: [
@@ -278,6 +297,41 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -640,6 +694,14 @@ export type Database = {
       expire_trip_requests: { Args: never; Returns: undefined }
       get_or_create_conversation: { Args: { p_other: string }; Returns: string }
       mark_conversation_read: { Args: { p_id: string }; Returns: undefined }
+      my_ride_stats: {
+        Args: never
+        Returns: {
+          distance_m: number
+          partners: number
+          rides: number
+        }[]
+      }
       occurrence_load: {
         Args: { p_date: string; p_trip_ids: string[] }
         Returns: {
@@ -649,6 +711,7 @@ export type Database = {
           trip_id: string
         }[]
       }
+      purge_old_notifications: { Args: never; Returns: undefined }
       record_verification_failure: {
         Args: { p_email_hash: string; p_purpose: string }
         Returns: number

@@ -1,6 +1,5 @@
-// RoadMates service worker: offline fallback for navigations.
-// Push handlers are added in phase 9.
-const CACHE = "roadmates-v1";
+// RoadMates service worker: offline fallback for navigations, push notifications.
+const CACHE = "roadmates-v2";
 const OFFLINE_URL = "/hors-ligne";
 
 self.addEventListener("install", (event) => {
@@ -23,5 +22,33 @@ self.addEventListener("fetch", (event) => {
     fetch(event.request).catch(() =>
       caches.match(OFFLINE_URL).then((res) => res || Response.error()),
     ),
+  );
+});
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {}
+  event.waitUntil(
+    self.registration.showNotification(data.title || "RoadMates", {
+      body: data.body || "",
+      icon: "/icon",
+      badge: "/icon",
+      tag: data.tag,
+      data: { url: data.url || "/" },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((w) => w.url.startsWith(self.location.origin));
+      if (open) return open.navigate(url).then((w) => (w || open).focus());
+      return self.clients.openWindow(url);
+    }),
   );
 });

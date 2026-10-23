@@ -22,11 +22,12 @@ export default function NotificationsPage() {
 async function Notifications() {
   const profile = await getCurrentProfile();
   const supabase = await createClient();
-  await supabase.rpc("expire_trip_requests");
+  await Promise.all([supabase.rpc("expire_trip_requests"), supabase.rpc("purge_old_notifications")]);
   const { data } = await supabase
     .from("notifications")
     .select("id, kind, payload, read_at, created_at")
     .eq("user_id", profile.id)
+    .neq("kind", "new_message")
     .order("created_at", { ascending: false })
     .limit(50);
   const items = data ?? [];

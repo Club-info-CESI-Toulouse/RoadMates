@@ -1,7 +1,12 @@
 import { formatDayLabel } from "@/lib/dates";
 import { SLOT_LABELS } from "@/lib/trips/labels";
 
-export type NotificationPayload = { date?: string; slot?: "morning" | "evening"; other_name?: string };
+export type NotificationPayload = {
+  date?: string;
+  slot?: "morning" | "evening";
+  other_name?: string;
+  preview?: string;
+};
 
 // Text of a notification, shared by the in-app list and push/email delivery.
 export function notificationText(kind: string, payload: NotificationPayload): string {
@@ -12,6 +17,8 @@ export function notificationText(kind: string, payload: NotificationPayload): st
       : "";
   const yours = `Ta demande avec ${name} ${when} a été annulée`;
   switch (kind) {
+    case "new_message":
+      return `${name} : ${payload.preview ?? "nouveau message"}`;
     case "request_received":
       return `${name} t'a envoyé une demande de covoiturage ${when}.`;
     case "request_accepted":
@@ -34,3 +41,9 @@ export function notificationText(kind: string, payload: NotificationPayload): st
       return "Nouvelle notification.";
   }
 }
+
+export const notificationTitle = (kind: string) =>
+  kind === "new_message" ? "Nouveau message" : "Covoiturage";
+
+export const notificationUrl = (kind: string, conversationId: string | null) =>
+  kind === "new_message" && conversationId ? `/messagerie/${conversationId}` : "/trajets";
