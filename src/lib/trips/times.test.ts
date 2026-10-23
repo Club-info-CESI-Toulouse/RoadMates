@@ -30,7 +30,8 @@ describe("resolveTimes", () => {
     });
     expect(resolveTimes("07:30", "07:55", 25 * MIN)).toMatchObject({ ok: true });
     expect(resolveTimes("07:00", "09:00", 25 * MIN)).toMatchObject({ ok: true, arrival: "09:00" });
-    expect(resolveTimes("08:00", "07:00", 25 * MIN)).toMatchObject({ reason: "too_short" });
+    expect(resolveTimes("08:00", "07:00", 25 * MIN)).toMatchObject({ reason: "arrival_before_departure" });
+    expect(resolveTimes("19:32", "00:07", 29 * MIN)).toMatchObject({ reason: "arrival_before_departure" });
   });
 
   it("rejects missing times and times outside the day", () => {
