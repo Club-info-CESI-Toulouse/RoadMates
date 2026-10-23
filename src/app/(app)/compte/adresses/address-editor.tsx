@@ -3,9 +3,8 @@
 import { useState, useTransition } from "react";
 import { FormMessage } from "@/components/form";
 import { AddressSearch } from "@/components/map/address-search";
-import { MapView } from "@/components/map/map-view";
 import { ADDRESS_LABELS, type AddressKind } from "@/lib/addresses/constants";
-import type { LatLon, Place } from "@/lib/geo/types";
+import type { Place } from "@/lib/geo/types";
 import { resetAddress, saveAddress } from "./actions";
 
 type Props = {
@@ -13,22 +12,12 @@ type Props = {
   current: (Place & { isDefault: boolean }) | null;
 };
 
-// One address row: summary, then search + map editor when opened.
+// One address row: summary, then the search field when opened.
 export function AddressEditor({ kind, current }: Props) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Place | null>(current);
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
-
-  async function pick(point: LatLon) {
-    setDraft({ ...point, label: "Point sur la carte" });
-    try {
-      const res = await fetch(`/api/geo/reverse?lat=${point.lat}&lon=${point.lon}`);
-      const data: { place: Place | null } = await res.json();
-      // Keep the exact pin; only borrow the nearest address label.
-      if (data.place) setDraft({ ...point, label: data.place.label });
-    } catch {}
-  }
 
   function run(action: () => Promise<{ ok: boolean; error?: string }>) {
     setError(undefined);
@@ -64,10 +53,6 @@ export function AddressEditor({ kind, current }: Props) {
       {open && (
         <div className="flex flex-col gap-3">
           <AddressSearch onSelect={setDraft} near={draft ?? current} />
-          <p className="text-xs text-muted">
-            Ou touche la carte / déplace le repère pour ajuster le point exact.
-          </p>
-          <MapView marker={draft} onPick={pick} />
           {draft && <p className="text-sm">{draft.label}</p>}
           <FormMessage error={error} />
           <div className="flex flex-wrap items-center gap-4">

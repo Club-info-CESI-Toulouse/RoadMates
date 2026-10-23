@@ -18,7 +18,7 @@ export const durationMinutes = (durationS: number) => Math.max(1, Math.round(dur
 
 export type ResolvedTimes =
   | { ok: true; departure: string; arrival: string; durationMin: number }
-  | { ok: false; reason: "missing" | "too_short" | "out_of_day"; durationMin: number };
+  | { ok: false; reason: "missing" | "arrival_before_departure" | "too_short" | "out_of_day"; durationMin: number };
 
 /**
  * Computes the missing time from the duration. When both are given, only the
@@ -35,6 +35,9 @@ export function resolveTimes(
   const dep = departure ? toMinutes(departure) : toMinutes(arrival!) - durationMin;
   const arr = arrival ? toMinutes(arrival) : toMinutes(departure!) + durationMin;
 
+  // Trips never cross midnight: an earlier arrival is a typo, not a night trip.
+  if (departure && arrival && arr <= dep)
+    return { ok: false, reason: "arrival_before_departure", durationMin };
   if (departure && arrival && arr - dep < durationMin)
     return { ok: false, reason: "too_short", durationMin };
   if (dep < 0 || arr >= DAY_MIN) return { ok: false, reason: "out_of_day", durationMin };

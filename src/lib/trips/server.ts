@@ -106,6 +106,7 @@ export async function saveMyTrip(userId: string, trip: Trip, id?: string): Promi
     const duration = formatDuration(times.durationMin);
     const error = {
       missing: "Indique une heure de départ ou d'arrivée",
+      arrival_before_departure: `L'heure d'arrivée (${trip.arrivalTime}) est avant l'heure de départ (${trip.departureTime}). Un trajet ne peut pas passer minuit : corrige l'une des deux heures ou n'en indique qu'une.`,
       too_short: `Arrivée trop proche du départ : le trajet dure environ ${duration} (estimation hors trafic). Décale l'une des deux heures ou n'en indique qu'une.`,
       out_of_day: `Avec une durée estimée de ${duration}, le trajet sortirait de la journée`,
     }[times.reason];
