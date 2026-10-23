@@ -108,6 +108,51 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          read_at: string | null
+          request_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          payload?: Json
+          read_at?: string | null
+          request_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          read_at?: string | null
+          request_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "trip_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -195,6 +240,149 @@ export type Database = {
             columns: ["trip_id"]
             isOneToOne: false
             referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_requests: {
+        Row: {
+          cancel_reason: Database["public"]["Enums"]["cancel_reason"] | null
+          cancelled_by: string | null
+          created_at: string
+          date: string
+          detour_m: number
+          detour_min: number
+          distance_m: number
+          driver_departure_at: string
+          driver_id: string
+          driver_trip_id: string
+          dropoff_at: string
+          dropoff_label: string | null
+          dropoff_lat: number
+          dropoff_lon: number
+          id: string
+          occurrence_id: string
+          passenger_id: string
+          passenger_trip_id: string
+          pickup_at: string
+          pickup_label: string | null
+          pickup_lat: number
+          pickup_lon: number
+          score: number
+          sender_id: string
+          slot: Database["public"]["Enums"]["trip_slot"]
+          status: Database["public"]["Enums"]["request_status"]
+          updated_at: string
+          walk_min: number
+        }
+        Insert: {
+          cancel_reason?: Database["public"]["Enums"]["cancel_reason"] | null
+          cancelled_by?: string | null
+          created_at?: string
+          date: string
+          detour_m: number
+          detour_min: number
+          distance_m: number
+          driver_departure_at: string
+          driver_id: string
+          driver_trip_id: string
+          dropoff_at: string
+          dropoff_label?: string | null
+          dropoff_lat: number
+          dropoff_lon: number
+          id?: string
+          occurrence_id: string
+          passenger_id: string
+          passenger_trip_id: string
+          pickup_at: string
+          pickup_label?: string | null
+          pickup_lat: number
+          pickup_lon: number
+          score: number
+          sender_id: string
+          slot: Database["public"]["Enums"]["trip_slot"]
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          walk_min: number
+        }
+        Update: {
+          cancel_reason?: Database["public"]["Enums"]["cancel_reason"] | null
+          cancelled_by?: string | null
+          created_at?: string
+          date?: string
+          detour_m?: number
+          detour_min?: number
+          distance_m?: number
+          driver_departure_at?: string
+          driver_id?: string
+          driver_trip_id?: string
+          dropoff_at?: string
+          dropoff_label?: string | null
+          dropoff_lat?: number
+          dropoff_lon?: number
+          id?: string
+          occurrence_id?: string
+          passenger_id?: string
+          passenger_trip_id?: string
+          pickup_at?: string
+          pickup_label?: string | null
+          pickup_lat?: number
+          pickup_lon?: number
+          score?: number
+          sender_id?: string
+          slot?: Database["public"]["Enums"]["trip_slot"]
+          status?: Database["public"]["Enums"]["request_status"]
+          updated_at?: string
+          walk_min?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_requests_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_requests_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_requests_driver_trip_id_fkey"
+            columns: ["driver_trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_requests_occurrence_id_fkey"
+            columns: ["occurrence_id"]
+            isOneToOne: false
+            referencedRelation: "trip_occurrences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_requests_passenger_id_fkey"
+            columns: ["passenger_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_requests_passenger_trip_id_fkey"
+            columns: ["passenger_trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trip_requests_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -323,16 +511,64 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_trip_request: { Args: { p_id: string }; Returns: undefined }
+      cancel_trip_request: { Args: { p_id: string }; Returns: undefined }
+      create_trip_request: {
+        Args: {
+          p_date: string
+          p_detour_m: number
+          p_detour_min: number
+          p_distance_m: number
+          p_driver_departure: string
+          p_driver_trip: string
+          p_dropoff_at: string
+          p_dropoff_label: string
+          p_dropoff_lat: number
+          p_dropoff_lon: number
+          p_max_pending: number
+          p_occurrence_arrival: string
+          p_occurrence_departure: string
+          p_passenger_trip: string
+          p_pickup_at: string
+          p_pickup_label: string
+          p_pickup_lat: number
+          p_pickup_lon: number
+          p_score: number
+          p_sender: string
+          p_walk_min: number
+        }
+        Returns: string
+      }
       establishment_id_for_email: { Args: { p_email: string }; Returns: string }
+      expire_trip_requests: { Args: never; Returns: undefined }
+      occurrence_load: {
+        Args: { p_date: string; p_trip_ids: string[] }
+        Returns: {
+          accepted: number
+          fixed_departure: string
+          seats_total: number
+          trip_id: string
+        }[]
+      }
       record_verification_failure: {
         Args: { p_email_hash: string; p_purpose: string }
         Returns: number
       }
+      settle_occurrence: { Args: { p_request: string }; Returns: undefined }
       visible_group_ids: { Args: never; Returns: string[] }
     }
     Enums: {
       address_kind: "home" | "work" | "school" | "other"
+      cancel_reason:
+        | "declined"
+        | "withdrawn"
+        | "cancelled"
+        | "full"
+        | "past"
+        | "passenger_matched"
+        | "schedule_changed"
       occurrence_status: "scheduled" | "cancelled"
+      request_status: "pending" | "accepted" | "cancelled"
       trip_role: "driver" | "passenger"
       trip_slot: "morning" | "evening"
     }
@@ -463,7 +699,17 @@ export const Constants = {
   public: {
     Enums: {
       address_kind: ["home", "work", "school", "other"],
+      cancel_reason: [
+        "declined",
+        "withdrawn",
+        "cancelled",
+        "full",
+        "past",
+        "passenger_matched",
+        "schedule_changed",
+      ],
       occurrence_status: ["scheduled", "cancelled"],
+      request_status: ["pending", "accepted", "cancelled"],
       trip_role: ["driver", "passenger"],
       trip_slot: ["morning", "evening"],
     },

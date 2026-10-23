@@ -17,6 +17,8 @@ export type Route = {
   durationS: number;
   /** [lon, lat] pairs along the route. */
   geometry: [number, number][];
+  /** One leg per pair of consecutive points (absent in old cache entries). */
+  legs?: { distanceM: number; durationS: number }[];
 };
 
 export class RoutingUnavailableError extends Error {}
@@ -28,6 +30,9 @@ const responseSchema = z.object({
         geometry: z.object({ coordinates: z.array(z.tuple([z.number(), z.number()])) }),
         properties: z.object({
           summary: z.object({ distance: z.number().default(0), duration: z.number().default(0) }),
+          segments: z
+            .array(z.object({ distance: z.number().default(0), duration: z.number().default(0) }))
+            .optional(),
         }),
       }),
     )
@@ -35,12 +40,13 @@ const responseSchema = z.object({
 });
 
 const round = (n: number) => n.toFixed(5);
-const cacheKey = (profile: RouteProfile, from: LatLon, to: LatLon) =>
+// Two-point keys keep their original format so existing cache entries stay valid.
+const cacheKey = (profile: RouteProfile, points: LatLon[]) =>
   createHash("sha256")
-    .update(`${profile}|${round(from.lat)},${round(from.lon)}|${round(to.lat)},${round(to.lon)}`)
+    .update([profile, ...points.map((p) => `${round(p.lat)},${round(p.lon)}`)].join("|"))
     .digest("hex");
 
-async function fetchRoute(profile: RouteProfile, from: LatLon, to: LatLon): Promise<Route> {
+async function fetchRoute(profile: RouteProfile, points: LatLon[]): Promise<Route> {
   const key = process.env.ORS_API_KEY;
   if (!key) throw new RoutingUnavailableError("ORS_API_KEY missing");
 
@@ -49,7 +55,7 @@ async function fetchRoute(profile: RouteProfile, from: LatLon, to: LatLon): Prom
     res = await fetch(`${BASE_URL}/${PROFILES[profile]}/geojson`, {
       method: "POST",
       headers: { Authorization: key, "Content-Type": "application/json" },
-      body: JSON.stringify({ coordinates: [[from.lon, from.lat], [to.lon, to.lat]] }),
+      body: JSON.stringify({ coordinates: points.map((p) => [p.lon, p.lat]) }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch {
@@ -64,11 +70,17 @@ async function fetchRoute(profile: RouteProfile, from: LatLon, to: LatLon): Prom
     distanceM: Math.round(feature.properties.summary.distance),
     durationS: Math.round(feature.properties.summary.duration),
     geometry: feature.geometry.coordinates,
+    legs: feature.properties.segments?.map((s) => ({
+      distanceM: Math.round(s.distance),
+      durationS: Math.round(s.duration),
+    })),
   };
 }
 
-export async function getRoute(profile: RouteProfile, from: LatLon, to: LatLon): Promise<Route> {
-  const key = cacheKey(profile, from, to);
+/** Route from the first to the last point, through the others in order. */
+export async function getRoute(profile: RouteProfile, ...points: LatLon[]): Promise<Route> {
+  if (points.length < 2) throw new RoutingUnavailableError("At least two points required");
+  const key = cacheKey(profile, points);
   const db = createAdminClient();
 
   const { data: cached } = await db
@@ -78,7 +90,7 @@ export async function getRoute(profile: RouteProfile, from: LatLon, to: LatLon):
     .maybeSingle();
   if (cached) return decrypt<Route>(cached.payload_encrypted);
 
-  const route = await fetchRoute(profile, from, to);
+  const route = await fetchRoute(profile, points);
   await db.from("route_cache").upsert({ key, payload_encrypted: encrypt(route) });
   return route;
 }

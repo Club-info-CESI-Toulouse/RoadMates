@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { PageShell } from "@/components/page-shell";
 import { getCurrentProfile } from "@/lib/auth/user";
 import { listMyTrips } from "@/lib/trips/server";
+import { MyRequests } from "./my-requests";
 import { TripCard } from "./trip-card";
 
 export const metadata: Metadata = { title: "Mes trajets · RoadMates" };
@@ -31,6 +32,7 @@ export default function TripsPage() {
 async function Trips() {
   const profile = await getCurrentProfile();
   const trips = await listMyTrips(profile.id);
+  const requests = <MyRequests userId={profile.id} />;
   if (trips.length === 0)
     return (
       <p className="text-muted">
@@ -38,10 +40,16 @@ async function Trips() {
       </p>
     );
   return (
-    <ul className="flex flex-col gap-3">
-      {trips.map((trip) => (
-        <TripCard key={trip.id} trip={trip} />
-      ))}
-    </ul>
+    <>
+      {requests}
+      <section className="flex flex-col gap-3">
+        <h2 className="text-lg font-bold">Trajets habituels</h2>
+        <ul className="flex flex-col gap-3">
+          {trips.map((trip) => (
+            <TripCard key={trip.id} trip={trip} />
+          ))}
+        </ul>
+      </section>
+    </>
   );
 }
