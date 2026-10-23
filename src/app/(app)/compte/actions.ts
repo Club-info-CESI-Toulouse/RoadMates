@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { displayNameSchema } from "@/lib/auth/schema";
 import { createClient } from "@/lib/supabase/server";
-import type { FormState } from "../(auth)/actions";
+import type { FormState } from "@/app/(auth)/actions";
 
 export async function updateDisplayName(_: FormState, formData: FormData): Promise<FormState> {
   const parsed = displayNameSchema.safeParse(formData.get("displayName"));

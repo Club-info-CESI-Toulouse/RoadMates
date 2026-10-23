@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { Field, FormMessage, SubmitButton } from "@/components/form";
 import { DISPLAY_NAME_MAX_LENGTH } from "@/lib/auth/schema";
-import type { FormState } from "../(auth)/actions";
+import type { FormState } from "@/app/(auth)/actions";
 import { updateDisplayName } from "./actions";
 
 const initialState: FormState = {};

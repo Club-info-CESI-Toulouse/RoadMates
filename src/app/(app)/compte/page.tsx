@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { InstallPrompt } from "@/components/install-prompt";
+import { PageShell } from "@/components/page-shell";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getCurrentProfile } from "@/lib/auth/user";
-import { signOut } from "../(auth)/actions";
+import { signOut } from "@/app/(auth)/actions";
 import { DisplayNameForm } from "./display-name-form";
 
 export const metadata: Metadata = { title: "Compte · RoadMates" };
 
 export default function AccountPage() {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-8 px-4 py-8">
-      <h1 className="text-2xl font-bold">Compte</h1>
+    <PageShell title="Compte">
       <Suspense fallback={<p className="text-muted">Chargement…</p>}>
         <Profile />
       </Suspense>
@@ -18,12 +19,13 @@ export default function AccountPage() {
         <h2 className="font-semibold">Thème</h2>
         <ThemeSwitcher />
       </section>
+      <InstallPrompt />
       <form action={signOut}>
         <button type="submit" className="text-sm text-muted underline">
           Se déconnecter
         </button>
       </form>
-    </main>
+    </PageShell>
   );
 }
 
