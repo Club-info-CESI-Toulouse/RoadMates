@@ -88,6 +88,7 @@ Chaque phase est livrable et testable seule. Cocher en fin de phase (section Ava
 Après la phase 11 : préparation Partie B (plusieurs classes, toute l'école, modération).
 
 ## Avancement (mettre à jour en fin de phase, une ligne)
-- [x] 1 · [ ] 2 · [ ] 3 · [ ] 4 · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8 · [ ] 9 · [ ] 10 · [ ] 11
+- [x] 1 · [x] 2 · [ ] 3 · [ ] 4 · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8 · [ ] 9 · [ ] 10 · [ ] 11
 - Notes de reprise (3 lignes max) :
-  - Supabase ref `rsvxhhpkbpiupmgfavud` lié, migration foundations appliquée, prod https://roadmates.vercel.app. Avant phase 2 : config Auth (code 6 chiffres, SMTP Resend) par Yoan.
+  - Supabase ref `rsvxhhpkbpiupmgfavud`, prod https://roadmates.vercel.app. Auth : trigger @viacesi.fr + profil auto (classe unique), codes 6 chiffres (5 essais, table `verification_attempts`), chiffrement `src/lib/crypto/address.ts`.
+  - À vérifier par Yoan : templates email Supabase avec `{{ .Token }}`, expiration OTP 600 s, test inscription réel.
