@@ -1,4 +1,5 @@
 import "server-only";
+import { cacheLife } from "next/cache";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { decrypt, encrypt } from "@/lib/crypto/address";
@@ -79,6 +80,9 @@ async function fetchRoute(profile: RouteProfile, points: LatLon[]): Promise<Rout
 
 /** Route from the first to the last point, through the others in order. */
 export async function getRoute(profile: RouteProfile, ...points: LatLon[]): Promise<Route> {
+  // In-memory layer on top of the database cache (failures are not cached).
+  "use cache";
+  cacheLife("weeks");
   if (points.length < 2) throw new RoutingUnavailableError("At least two points required");
   const key = cacheKey(profile, points);
   const db = createAdminClient();
