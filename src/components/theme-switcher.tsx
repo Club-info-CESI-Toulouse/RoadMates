@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
   THEME_STORAGE_KEY,
   isThemePreference,
@@ -13,8 +13,18 @@ const OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: "system", label: "Auto" },
 ];
 
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  window.addEventListener("storage", listener);
+  return () => {
+    listeners.delete(listener);
+    window.removeEventListener("storage", listener);
+  };
+}
+
 function readPreference(): ThemePreference {
-  if (typeof window === "undefined") return "system";
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     return isThemePreference(stored) ? stored : "system";
@@ -32,15 +42,16 @@ function applyPreference(preference: ThemePreference) {
 }
 
 export function ThemeSwitcher() {
-  const [preference, setPreference] = useState<ThemePreference>(readPreference);
+  // Server snapshot "system" keeps hydration consistent; the stored value applies right after.
+  const preference = useSyncExternalStore(subscribe, readPreference, () => "system" as const);
 
   function select(value: ThemePreference) {
-    setPreference(value);
     try {
       if (value === "system") localStorage.removeItem(THEME_STORAGE_KEY);
       else localStorage.setItem(THEME_STORAGE_KEY, value);
     } catch {}
     applyPreference(value);
+    listeners.forEach((listener) => listener());
   }
 
   return (
@@ -48,7 +59,6 @@ export function ThemeSwitcher() {
       role="radiogroup"
       aria-label="Thème"
       className="inline-flex rounded-full border border-border bg-surface p-1"
-      suppressHydrationWarning
     >
       {OPTIONS.map((option) => (
         <button
@@ -57,7 +67,6 @@ export function ThemeSwitcher() {
           role="radio"
           aria-checked={preference === option.value}
           onClick={() => select(option.value)}
-          suppressHydrationWarning
           className="rounded-full px-4 py-1.5 text-sm font-medium text-muted transition-colors aria-checked:bg-primary aria-checked:text-primary-foreground"
         >
           {option.label}
