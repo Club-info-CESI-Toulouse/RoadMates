@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
+import { authorizeRealtime, createClient } from "@/lib/supabase/client";
 
 const icon = (path: ReactNode) => (
   <svg
@@ -70,10 +71,38 @@ export function AppNav() {
 }
 
 function ActiveNavBar() {
-  return <NavBar pathname={usePathname()} />;
+  const pathname = usePathname();
+  return <NavBar pathname={pathname} unread={useUnreadCount(pathname)} />;
 }
 
-function NavBar({ pathname }: { pathname: string | null }) {
+// Conversations with unread messages, live (RLS scopes the stream to the user).
+function useUnreadCount(pathname: string | null) {
+  const [count, setCount] = useState(0);
+  const [supabase] = useState(createClient);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () =>
+      supabase.rpc("unread_conversations_count").then(({ data }) => {
+        if (active) setCount(data ?? 0);
+      });
+    refresh();
+    const channel = supabase
+      .channel("unread-conversations")
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, refresh);
+    authorizeRealtime(supabase).then(() => {
+      if (active) channel.subscribe();
+    });
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, pathname]);
+
+  return count;
+}
+
+function NavBar({ pathname, unread = 0 }: { pathname: string | null; unread?: number }) {
   const isActive = (href: string) =>
     !!pathname &&
     (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
@@ -101,11 +130,19 @@ function NavBar({ pathname }: { pathname: string | null }) {
                 }`}
               >
                 <span
-                  className={`rounded-full px-4 py-0.5 md:p-0 ${active ? "bg-primary text-primary-foreground md:bg-transparent" : ""}`}
+                  className={`relative rounded-full px-4 py-0.5 md:p-0 ${active ? "bg-primary text-primary-foreground md:bg-transparent" : ""}`}
                 >
                   {item.icon}
+                  {item.href === "/messagerie" && unread > 0 && (
+                    <span className="absolute top-0 right-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] leading-4 font-bold text-white md:-top-1.5 md:-right-2">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
                 </span>
                 {item.label}
+                {item.href === "/messagerie" && unread > 0 && (
+                  <span className="sr-only">, {unread} conversation{unread > 1 ? "s" : ""} non lue{unread > 1 ? "s" : ""}</span>
+                )}
               </Link>
             </li>
           );

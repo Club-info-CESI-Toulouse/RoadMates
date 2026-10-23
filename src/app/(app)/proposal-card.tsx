@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PointsMap } from "@/components/map/points-map";
+import { MessageButton } from "@/components/message-button";
 import { RequestActions } from "@/components/request-actions";
 import type { Proposal } from "@/lib/matching/server";
 import { ROLE_LABELS } from "@/lib/trips/labels";
@@ -15,10 +16,9 @@ type Props = {
   myTripId: string;
   date: string;
   sendBlocked?: string;
-  messageSlot?: React.ReactNode;
 };
 
-export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked, messageSlot }: Props) {
+export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked }: Props) {
   const [showMap, setShowMap] = useState(false);
   const { other, match } = proposal;
 
@@ -90,7 +90,7 @@ export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked,
           send={{ myTripId, otherTripId: other.tripId, date }}
           sendBlocked={sendBlocked}
         />
-        {messageSlot}
+        <MessageButton userId={other.userId} name={other.displayName} />
       </div>
     </li>
   );

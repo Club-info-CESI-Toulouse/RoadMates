@@ -1,3 +1,4 @@
+import { MessageButton } from "@/components/message-button";
 import { RequestActions } from "@/components/request-actions";
 import { formatClock, formatDayLabel } from "@/lib/dates";
 import { listMyRequests } from "@/lib/requests/server";
@@ -29,10 +30,13 @@ export async function MyRequests({ userId }: { userId: string }) {
             <p className="text-xs text-muted">
               {r.iAmDriver ? `Détour +${r.detourMin} min` : `Marche ${r.walkMin} min`} · horaires estimés, hors trafic
             </p>
-            <RequestActions
-              otherName={r.otherName}
-              request={{ id: r.id, status: r.status, sentByMe: r.sentByMe, driverDepartureAt: r.driverDepartureAt }}
-            />
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <RequestActions
+                otherName={r.otherName}
+                request={{ id: r.id, status: r.status, sentByMe: r.sentByMe, driverDepartureAt: r.driverDepartureAt }}
+              />
+              <MessageButton userId={r.otherId} name={r.otherName} />
+            </div>
           </li>
         ))}
       </ul>

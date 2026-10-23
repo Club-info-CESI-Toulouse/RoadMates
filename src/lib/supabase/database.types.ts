@@ -49,6 +49,64 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          a_read_at: string | null
+          b_read_at: string | null
+          created_at: string
+          id: string
+          last_message: string | null
+          last_message_at: string | null
+          last_sender_id: string | null
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          a_read_at?: string | null
+          b_read_at?: string | null
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          last_sender_id?: string | null
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          a_read_at?: string | null
+          b_read_at?: string | null
+          created_at?: string
+          id?: string
+          last_message?: string | null
+          last_message_at?: string | null
+          last_sender_id?: string | null
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_last_sender_id_fkey"
+            columns: ["last_sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_user_a_fkey"
+            columns: ["user_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_user_b_fkey"
+            columns: ["user_b"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       establishments: {
         Row: {
           address: string | null
@@ -104,6 +162,45 @@ export type Database = {
             columns: ["establishment_id"]
             isOneToOne: false
             referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -541,6 +638,8 @@ export type Database = {
       }
       establishment_id_for_email: { Args: { p_email: string }; Returns: string }
       expire_trip_requests: { Args: never; Returns: undefined }
+      get_or_create_conversation: { Args: { p_other: string }; Returns: string }
+      mark_conversation_read: { Args: { p_id: string }; Returns: undefined }
       occurrence_load: {
         Args: { p_date: string; p_trip_ids: string[] }
         Returns: {
@@ -555,6 +654,7 @@ export type Database = {
         Returns: number
       }
       settle_occurrence: { Args: { p_request: string }; Returns: undefined }
+      unread_conversations_count: { Args: never; Returns: number }
       visible_group_ids: { Args: never; Returns: string[] }
     }
     Enums: {
