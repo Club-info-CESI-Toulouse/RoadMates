@@ -16,6 +16,7 @@ export function SignInForm() {
         label="Adresse email"
         name="email"
         type="email"
+        defaultValue={state.values?.email}
         autoComplete="email"
         required
         error={e.email}

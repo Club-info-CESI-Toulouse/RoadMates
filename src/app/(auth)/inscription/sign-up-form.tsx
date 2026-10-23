@@ -20,6 +20,7 @@ export function SignUpForm() {
         label="Adresse email de l'école"
         name="email"
         type="email"
+        defaultValue={state.values?.email}
         autoComplete="email"
         placeholder={`prenom.nom@${ALLOWED_EMAIL_DOMAIN}`}
         pattern={`.+@${ALLOWED_EMAIL_DOMAIN.replaceAll(".", "\\.")}`}
@@ -30,6 +31,7 @@ export function SignUpForm() {
       <Field
         label="Pseudo ou prénom"
         name="displayName"
+        defaultValue={state.values?.displayName}
         autoComplete="nickname"
         maxLength={DISPLAY_NAME_MAX_LENGTH}
         required

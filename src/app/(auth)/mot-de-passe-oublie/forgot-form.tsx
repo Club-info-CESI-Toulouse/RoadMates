@@ -14,6 +14,7 @@ export function ForgotForm() {
         label="Adresse email"
         name="email"
         type="email"
+        defaultValue={state.values?.email}
         autoComplete="email"
         required
         error={state.fieldErrors?.email}

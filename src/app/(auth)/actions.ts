@@ -18,18 +18,20 @@ export type FormState = {
   error?: string;
   message?: string;
   fieldErrors?: Record<string, string>;
+  /** Non-sensitive inputs sent back so the form keeps them (never passwords). */
+  values?: Record<string, string>;
 };
 
 const LOCKED = "Trop d'essais : demande un nouveau code";
 const EXPIRED = "Session expirée, recommence";
 
-function fieldErrors(error: z.ZodError): FormState {
+function fieldErrors(error: z.ZodError, values?: Record<string, string>): FormState {
   const errors: Record<string, string> = {};
   for (const issue of error.issues) {
     const key = String(issue.path[0] ?? "form");
     errors[key] ??= issue.message;
   }
-  return { fieldErrors: errors };
+  return { fieldErrors: errors, values };
 }
 
 const read = (formData: FormData, ...keys: string[]) =>
@@ -45,7 +47,8 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
   const parsed = signUpSchema.safeParse(
     read(formData, "email", "password", "passwordConfirm", "displayName"),
   );
-  if (!parsed.success) return fieldErrors(parsed.error);
+  const values = read(formData, "email", "displayName");
+  if (!parsed.success) return fieldErrors(parsed.error, values);
   const { email, password, displayName } = parsed.data;
 
   const supabase = await createClient();
@@ -54,7 +57,7 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
     password,
     options: { data: { display_name: displayName } },
   });
-  if (error) return { error: authErrorMessage(error.code) };
+  if (error) return { error: authErrorMessage("signUp", error), values };
 
   await resetAttempts(email, "signup");
   await setPending(email, "signup");
@@ -86,7 +89,7 @@ export async function resendCode(purpose: PendingPurpose): Promise<FormState> {
     purpose === "signup"
       ? await supabase.auth.resend({ type: "signup", email })
       : await supabase.auth.resetPasswordForEmail(email);
-  if (error) return { error: authErrorMessage(error.code) };
+  if (error) return { error: authErrorMessage("resendCode", error) };
 
   await resetAttempts(email, purpose);
   return { message: "Nouveau code envoyé" };
@@ -94,7 +97,8 @@ export async function resendCode(purpose: PendingPurpose): Promise<FormState> {
 
 export async function signIn(_: FormState, formData: FormData): Promise<FormState> {
   const parsed = signInSchema.safeParse(read(formData, "email", "password"));
-  if (!parsed.success) return fieldErrors(parsed.error);
+  const values = read(formData, "email");
+  if (!parsed.success) return fieldErrors(parsed.error, values);
   const { email, password } = parsed.data;
 
   const supabase = await createClient();
@@ -105,17 +109,19 @@ export async function signIn(_: FormState, formData: FormData): Promise<FormStat
     await setPending(email, "signup");
     redirect("/verification");
   }
-  if (error) return { error: authErrorMessage(error.code) };
+  if (error) return { error: authErrorMessage("signIn", error), values };
   redirect("/");
 }
 
 export async function requestPasswordReset(_: FormState, formData: FormData): Promise<FormState> {
   const parsed = emailSchema.safeParse(formData.get("email"));
-  if (!parsed.success) return { fieldErrors: { email: parsed.error.issues[0].message } };
+  const values = read(formData, "email");
+  if (!parsed.success) return { fieldErrors: { email: parsed.error.issues[0].message }, values };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data);
-  if (error && error.code?.startsWith("over_")) return { error: authErrorMessage(error.code) };
+  // Unknown accounts are not an error (no enumeration); delivery problems are.
+  if (error) return { error: authErrorMessage("requestPasswordReset", error), values };
 
   // Same outcome whether the account exists or not.
   await resetAttempts(parsed.data, "recovery");
@@ -142,7 +148,7 @@ export async function resetPassword(_: FormState, formData: FormData): Promise<F
   if (updateError) {
     // The code is consumed: sign out so the user can request a new one cleanly.
     await supabase.auth.signOut();
-    return { error: `${authErrorMessage(updateError.code)}. Demande un nouveau code.` };
+    return { error: `${authErrorMessage("resetPassword", updateError)}. Demande un nouveau code.` };
   }
 
   await resetAttempts(email, "recovery");

@@ -31,7 +31,7 @@ const withConfirmation = <T extends { password: string; passwordConfirm: string 
   data: T,
 ) => data.password === data.passwordConfirm;
 const confirmationError = {
-  message: "Les mots de passe ne correspondent pas",
+  message: "Les deux mots de passe ne correspondent pas : ressaisis-les",
   path: ["passwordConfirm"],
 };
 
