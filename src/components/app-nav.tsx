@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 const icon = (path: ReactNode) => (
   <svg
@@ -59,11 +59,24 @@ const ITEMS = [
   },
 ] as const;
 
-// Bottom tab bar on mobile, sidebar from md up.
+// Bottom tab bar on mobile, sidebar from md up. The static fallback (no active tab)
+// keeps the shell prerenderable on dynamic routes.
 export function AppNav() {
-  const pathname = usePathname();
+  return (
+    <Suspense fallback={<NavBar pathname={null} />}>
+      <ActiveNavBar />
+    </Suspense>
+  );
+}
+
+function ActiveNavBar() {
+  return <NavBar pathname={usePathname()} />;
+}
+
+function NavBar({ pathname }: { pathname: string | null }) {
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+    !!pathname &&
+    (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
 
   return (
     <nav

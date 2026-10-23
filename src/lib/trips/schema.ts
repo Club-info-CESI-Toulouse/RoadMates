@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ADDRESS_KINDS } from "@/lib/addresses/constants";
 import {
   DRIVER_SEATS,
   FLEX_AFTER_MIN,
@@ -16,6 +17,8 @@ export const tripSchema = z
     role: z.enum(TRIP_ROLES),
     seats: z.int().min(DRIVER_SEATS.min).max(DRIVER_SEATS.max).nullable(),
     slot: z.enum(SLOTS),
+    originKind: z.enum(ADDRESS_KINDS),
+    destinationKind: z.enum(ADDRESS_KINDS),
     weekdays: z
       .array(z.int().min(1).max(7))
       .min(1, "Choisis au moins un jour")
@@ -39,6 +42,11 @@ export const tripSchema = z
       .default(MAX_WALK_MIN.default),
     validFrom: date.nullable(),
     validUntil: date.nullable(),
+    isActive: z.boolean().default(true),
+  })
+  .refine((t) => t.originKind !== t.destinationKind, {
+    message: "Le départ et l'arrivée doivent être différents",
+    path: ["destinationKind"],
   })
   .refine((t) => t.departureTime !== null || t.arrivalTime !== null, {
     message: "Indique une heure de départ ou d'arrivée",

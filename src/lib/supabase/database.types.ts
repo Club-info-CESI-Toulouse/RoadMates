@@ -140,6 +140,24 @@ export type Database = {
           },
         ]
       }
+      route_cache: {
+        Row: {
+          created_at: string
+          key: string
+          payload_encrypted: string
+        }
+        Insert: {
+          created_at?: string
+          key: string
+          payload_encrypted: string
+        }
+        Update: {
+          created_at?: string
+          key?: string
+          payload_encrypted?: string
+        }
+        Relationships: []
+      }
       trip_occurrences: {
         Row: {
           arrival_at: string

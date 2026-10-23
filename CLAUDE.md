@@ -88,8 +88,8 @@ Chaque phase est livrable et testable seule. Cocher en fin de phase (section Ava
 Après la phase 11 : préparation Partie B (plusieurs classes, toute l'école, modération).
 
 ## Avancement (mettre à jour en fin de phase, une ligne)
-- [x] 1 · [x] 2 · [x] 3 · [x] 4 · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8 · [ ] 9 · [ ] 10 · [ ] 11
+- [x] 1 · [x] 2 · [x] 3 · [x] 4 · [x] 5 · [ ] 6 · [ ] 7 · [ ] 8 · [ ] 9 · [ ] 10 · [ ] 11
 - Notes de reprise (3 lignes max) :
   - Supabase ref `rsvxhhpkbpiupmgfavud`, prod https://roadmates.vercel.app. Auth : trigger @viacesi.fr + profil auto (classe unique), codes 6 chiffres (5 essais, table `verification_attempts`), chiffrement `src/lib/crypto/address.ts`.
-  - Phases 3-4 : SW natif `public/sw.js` (push à ajouter phase 9), module `src/lib/geo` (IGN ; ORS à ajouter phase 6, clé `ORS_API_KEY` absente). École par défaut : campus CESI Labège (`establishments`).
+  - Phases 3-4 : SW natif `public/sw.js` (push à ajouter phase 9), module `src/lib/geo` (IGN ; routage ORS + cache chiffré `route_cache` ; **clé `ORS_API_KEY` requise** pour enregistrer un trajet). École par défaut : campus CESI Labège (`establishments`).
   - À faire par Yoan : test inscription réel avec son adresse @viacesi.fr.
