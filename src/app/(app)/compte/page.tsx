@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { InstallPrompt } from "@/components/install-prompt";
 import { PageShell } from "@/components/page-shell";
@@ -15,6 +16,15 @@ export default function AccountPage() {
       <Suspense fallback={<p className="text-muted">Chargement…</p>}>
         <Profile />
       </Suspense>
+      <Link
+        href="/compte/adresses"
+        className="flex items-center justify-between rounded-xl border border-border p-4 font-semibold"
+      >
+        Mes adresses
+        <span aria-hidden="true" className="text-muted">
+          →
+        </span>
+      </Link>
       <section className="flex flex-col gap-3">
         <h2 className="font-semibold">Thème</h2>
         <ThemeSwitcher />
