@@ -7,6 +7,8 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { getCurrentProfile } from "@/lib/auth/user";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/(auth)/actions";
+import { listClassNames } from "@/lib/classes/server";
+import { ClassForm } from "./class-form";
 import { DeleteAccountForm } from "./delete-account-form";
 import { DisplayNameForm } from "./display-name-form";
 import { NotificationSettings } from "./notification-settings";
@@ -22,7 +24,7 @@ export default function AccountPage() {
       </Suspense>
       <Link
         href="/compte/adresses"
-        className="flex items-center justify-between rounded-xl border border-border p-4 font-semibold"
+        className="flex items-center justify-between rounded-3xl border border-border bg-card shadow-sm p-4 font-semibold"
       >
         Mes adresses
         <span aria-hidden="true" className="text-muted">
@@ -54,16 +56,15 @@ export default function AccountPage() {
 }
 
 async function Profile() {
-  const profile = await getCurrentProfile();
+  const [profile, classes] = await Promise.all([getCurrentProfile(), listClassNames()]);
   return (
     <section className="flex flex-col gap-4">
       <dl className="grid gap-1 text-sm">
         <dt className="text-muted">Email (jamais visible des autres)</dt>
         <dd>{profile.email}</dd>
-        <dt className="mt-2 text-muted">Classe</dt>
-        <dd>{profile.groupName ?? "Aucune"}</dd>
       </dl>
       <DisplayNameForm key={profile.displayName} displayName={profile.displayName} />
+      <ClassForm key={profile.groupName} className={profile.groupName} classes={classes} />
     </section>
   );
 }
@@ -80,7 +81,7 @@ async function Stats() {
   return (
     <dl className="grid grid-cols-3 gap-2">
       {items.map((s) => (
-        <div key={s.label} className="flex flex-col-reverse rounded-xl bg-surface p-3 text-center">
+        <div key={s.label} className="flex flex-col-reverse rounded-2xl bg-surface p-3 text-center">
           <dt className="text-xs text-muted">{s.label}</dt>
           <dd className="text-2xl font-bold tabular-nums">{s.value}</dd>
         </div>

@@ -19,7 +19,7 @@ export function DeleteAccountForm() {
     );
 
   return (
-    <form action={action} className="flex flex-col gap-3 rounded-xl border border-red-500 p-4 text-sm">
+    <form action={action} className="flex flex-col gap-3 rounded-2xl border border-red-500 p-4 text-sm">
       <p>
         Ton compte, tes adresses, trajets, demandes et messages seront supprimés définitivement. Tes
         covoiturages à venir seront annulés et tes covoitureurs prévenus.
@@ -27,7 +27,7 @@ export function DeleteAccountForm() {
       <Field label="Tape SUPPRIMER pour confirmer" name="confirm" autoComplete="off" required error={state.fieldErrors?.confirm} />
       <FormMessage error={state.error} />
       <div className="flex gap-3">
-        <button type="submit" disabled={pending} className="rounded-lg bg-red-600 px-4 py-2.5 font-semibold text-white disabled:opacity-60">
+        <button type="submit" disabled={pending} className="rounded-full bg-red-600 px-4 py-2.5 font-semibold text-white disabled:opacity-60">
           {pending ? "Suppression…" : "Supprimer définitivement"}
         </button>
         <button type="button" onClick={() => setOpen(false)} className="text-muted underline">

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { displayNameSchema } from "@/lib/auth/schema";
+import { classNameSchema, displayNameSchema } from "@/lib/auth/schema";
 import { createClient } from "@/lib/supabase/server";
 import type { FormState } from "@/app/(auth)/actions";
 
@@ -23,6 +23,18 @@ export async function updateDisplayName(_: FormState, formData: FormData): Promi
 
   revalidatePath("/compte");
   return { message: "Pseudo enregistré" };
+}
+
+export async function updateClass(_: FormState, formData: FormData): Promise<FormState> {
+  const parsed = classNameSchema.safeParse(formData.get("className"));
+  if (!parsed.success) return { fieldErrors: { className: parsed.error.issues[0].message } };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("change_class", { p_name: parsed.data });
+  if (error || !data) return { error: "Impossible de changer de classe, réessaie" };
+
+  revalidatePath("/", "layout");
+  return { message: `Tu es maintenant dans la classe ${data}` };
 }
 
 const DELETE_CONFIRMATION = "SUPPRIMER";

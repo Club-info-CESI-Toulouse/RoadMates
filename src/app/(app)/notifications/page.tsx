@@ -39,7 +39,7 @@ async function Notifications() {
     <>
       <ul className="flex flex-col gap-2">
         {items.map((n) => (
-          <li key={n.id} className={`rounded-xl border border-border p-4 text-sm ${n.read_at ? "" : "border-foreground"}`}>
+          <li key={n.id} className={`rounded-3xl border border-border bg-card shadow-sm p-4 text-sm ${n.read_at ? "" : "border-foreground"}`}>
             <p>{notificationText(n.kind, n.payload as NotificationPayload)}</p>
             <p className="mt-1 text-xs text-muted">
               {localDate(new Date(n.created_at)) === localDate() ? "Aujourd'hui" : formatDayLabel(localDate(new Date(n.created_at)))} à{" "}

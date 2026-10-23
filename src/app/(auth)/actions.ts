@@ -45,17 +45,17 @@ async function failedCode(email: string, purpose: PendingPurpose): Promise<FormS
 
 export async function signUp(_: FormState, formData: FormData): Promise<FormState> {
   const parsed = signUpSchema.safeParse(
-    read(formData, "email", "password", "passwordConfirm", "displayName"),
+    read(formData, "email", "password", "passwordConfirm", "displayName", "className"),
   );
-  const values = read(formData, "email", "displayName");
+  const values = read(formData, "email", "displayName", "className");
   if (!parsed.success) return fieldErrors(parsed.error, values);
-  const { email, password, displayName } = parsed.data;
+  const { email, password, displayName, className } = parsed.data;
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { display_name: displayName } },
+    options: { data: { display_name: displayName, class_name: className } },
   });
   if (error) return { error: authErrorMessage("signUp", error), values };
 

@@ -69,7 +69,7 @@ function DayStrip({ today, selected }: { today: string; selected: string }) {
                 href={day === today ? "/" : `/?date=${day}`}
                 aria-current={active ? "date" : undefined}
                 scroll={false}
-                className={`flex w-14 flex-col items-center rounded-xl py-2 text-sm ${
+                className={`flex w-14 flex-col items-center rounded-2xl py-2 text-sm ${
                   active ? "bg-primary font-bold text-primary-foreground" : weekend ? "text-muted" : ""
                 }`}
               >
@@ -133,7 +133,7 @@ function Section({ section, date }: { section: TripSection; date: string }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-xl bg-surface p-4">
+      <div className="rounded-3xl bg-card p-5 shadow-sm">
         <p className="font-semibold">
           {ADDRESS_LABELS[trip.originKind]} → {ADDRESS_LABELS[trip.destinationKind]}
         </p>

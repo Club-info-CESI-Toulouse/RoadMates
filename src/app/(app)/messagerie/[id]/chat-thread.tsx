@@ -95,7 +95,7 @@ export function ChatThread({
                 </span>
               )}
               <span
-                className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap ${
+                className={`max-w-[80%] rounded-3xl px-3 py-2 text-sm break-words whitespace-pre-wrap ${
                   mine ? "self-end bg-primary text-primary-foreground" : "self-start bg-surface"
                 }`}
               >
@@ -109,7 +109,7 @@ export function ChatThread({
         })}
       </ol>
       <div ref={end} />
-      <form onSubmit={send} className="sticky bottom-20 flex gap-2 border-t border-border bg-background py-3 md:bottom-0">
+      <form onSubmit={send} className="sticky bottom-24 flex gap-2 border-t border-border bg-background py-3 md:bottom-0">
         <label className="sr-only" htmlFor="message">
           Message
         </label>
@@ -126,12 +126,12 @@ export function ChatThread({
             }
           }}
           placeholder="Écris un message…"
-          className="flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-foreground"
+          className="flex-1 resize-none rounded-xl border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-foreground"
         />
         <button
           type="submit"
           disabled={sending || !draft.trim()}
-          className="rounded-lg bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-60"
+          className="rounded-full bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-60"
         >
           Envoyer
         </button>

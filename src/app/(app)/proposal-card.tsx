@@ -23,7 +23,7 @@ export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked 
   const { other, match } = proposal;
 
   return (
-    <li className="flex flex-col gap-3 rounded-xl border border-border p-4">
+    <li className="flex flex-col gap-3 rounded-3xl border border-border bg-card shadow-sm p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold">{other.displayName}</p>

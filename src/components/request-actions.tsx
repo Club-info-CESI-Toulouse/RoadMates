@@ -16,8 +16,8 @@ type Props = {
   sendBlocked?: string;
 };
 
-const primary = "rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60";
-const secondary = "rounded-lg border border-border px-3 py-2 text-sm font-medium disabled:opacity-60";
+const primary = "rounded-full bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60";
+const secondary = "rounded-full border border-border bg-card px-3 py-2 text-sm font-medium disabled:opacity-60";
 
 export function RequestActions({ otherName, request, send, sendBlocked }: Props) {
   const [pending, startTransition] = useTransition();

@@ -81,5 +81,5 @@ export function MapView({ marker, onPick, className }: Props) {
     }
   }, [marker]);
 
-  return <div ref={container} className={className ?? "h-72 w-full overflow-hidden rounded-xl"} />;
+  return <div ref={container} className={className ?? "h-72 w-full overflow-hidden rounded-2xl"} />;
 }

@@ -14,7 +14,7 @@ export async function MyRequests({ userId }: { userId: string }) {
       <h2 className="text-lg font-bold">Covoiturages et demandes</h2>
       <ul className="flex flex-col gap-3">
         {requests.map((r) => (
-          <li key={r.id} className="flex flex-col gap-2 rounded-xl border border-border p-4 text-sm">
+          <li key={r.id} className="flex flex-col gap-2 rounded-3xl border border-border bg-card shadow-sm p-4 text-sm">
             <p className="font-semibold">
               {formatDayLabel(r.date)} · {SLOT_LABELS[r.slot]} · {r.otherName}
               <span className="font-normal text-muted"> ({r.iAmDriver ? "passager" : "conducteur"})</span>

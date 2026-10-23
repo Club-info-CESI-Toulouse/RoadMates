@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { authorizeRealtime, createClient } from "@/lib/supabase/client";
@@ -110,12 +111,12 @@ function NavBar({ pathname, unread = 0 }: { pathname: string | null; unread?: nu
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] md:sticky md:top-0 md:h-dvh md:w-60 md:shrink-0 md:border-t-0 md:border-r md:pb-0"
+      className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 rounded-full border border-border bg-card/85 shadow-lg backdrop-blur-xl md:sticky md:inset-x-auto md:top-0 md:bottom-auto md:h-dvh md:w-64 md:shrink-0 md:rounded-none md:border-y-0 md:border-l-0 md:bg-card md:shadow-none md:backdrop-blur-none"
     >
-      <p className="hidden px-6 py-6 text-2xl font-bold tracking-tight md:block">
-        RoadMates<span className="text-primary">_</span>
-      </p>
-      <ul className="grid grid-cols-4 md:flex md:flex-col md:gap-1 md:px-3">
+      <div className="hidden px-6 py-7 md:block">
+        <Logo className="h-9" />
+      </div>
+      <ul className="grid grid-cols-4 px-1 py-1 md:flex md:flex-col md:gap-1 md:px-3 md:py-0">
         {ITEMS.map((item) => {
           const active = isActive(item.href);
           return (
@@ -123,7 +124,7 @@ function NavBar({ pathname, unread = 0 }: { pathname: string | null; unread?: nu
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium md:flex-row md:gap-3 md:rounded-lg md:px-3 md:py-2.5 md:text-sm ${
+                className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium md:flex-row md:gap-3 md:rounded-full md:px-4 md:py-2.5 md:text-sm ${
                   active
                     ? "text-foreground md:bg-primary md:text-primary-foreground"
                     : "text-muted hover:text-foreground"
