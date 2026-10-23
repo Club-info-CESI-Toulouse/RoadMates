@@ -51,7 +51,7 @@ Spec complète et décisions : `docs/NOTES.md` (source de vérité). Ce fichier 
 ## Sécurité et données
 - **Adresses chiffrées** en base (AES-256-GCM via `node:crypto`, clé `ADDRESS_ENCRYPTION_KEY` en variable d'environnement serveur, préfixe de version pour une rotation future). Déchiffrement **uniquement côté serveur** au moment du calcul (pas de PostGIS en partie A) ; ne renvoyer une adresse en clair qu'à son propriétaire. Les points de rendez-vous restent lisibles.
 - Mots de passe : hachés par Supabase Auth (jamais gérés à la main).
-- Aucun secret dans le code, Git ou les logs. Variables d'environnement uniquement (local `.env.local` ignoré par git + Vercel). Ne jamais afficher une valeur secrète dans le chat. Clés publiques autorisées : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. `SUPABASE_SERVICE_ROLE_KEY`, `ORS_API_KEY`, `ADDRESS_ENCRYPTION_KEY`, clés Resend et VAPID privée : serveur uniquement.
+- Aucun secret dans le code, Git ou les logs. Variables d'environnement uniquement (local `.env.local` ignoré par git + Vercel). Ne jamais afficher une valeur secrète dans le chat. Clés publiques autorisées : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `SUPABASE_SERVICE_ROLE_KEY`, `ORS_API_KEY`, `ADDRESS_ENCRYPTION_KEY`, clés Resend et VAPID privée : serveur uniquement.
 - **RLS activée sur toutes les tables**, règles de visibilité centralisées en base (par groupe) pour que la Partie B soit un simple élargissement.
 - HTTPS partout. Données de localisation = données personnelles : RGPD, suppression de compte effective.
 
