@@ -18,7 +18,7 @@ export function MessageButton({ userId, name }: { userId: string; name: string }
             if (result?.error) setError(result.error);
           })
         }
-        className="rounded-lg border border-border px-3 py-2 text-sm font-medium disabled:opacity-60"
+        className="rounded-full border border-border bg-card px-3 py-2 text-sm font-medium disabled:opacity-60"
       >
         Message
       </button>

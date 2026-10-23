@@ -6,6 +6,7 @@ const valid = {
   password: "motdepasse",
   passwordConfirm: "motdepasse",
   displayName: " Jean ",
+  className: "CPI A2",
 };
 
 describe("emailSchema", () => {
@@ -50,5 +51,13 @@ describe("resetPasswordSchema", () => {
     const base = { code: "123456", password: "nouveaumdp", passwordConfirm: "nouveaumdp" };
     expect(resetPasswordSchema.safeParse(base).success).toBe(true);
     expect(resetPasswordSchema.safeParse({ ...base, passwordConfirm: "x" }).success).toBe(false);
+  });
+});
+
+describe("classNameSchema", () => {
+  it("normalises spaces and enforces length", async () => {
+    const { classNameSchema } = await import("./schema");
+    expect(classNameSchema.parse("  CPI   A2 ")).toBe("CPI A2");
+    expect(classNameSchema.safeParse("A").success).toBe(false);
   });
 });

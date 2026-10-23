@@ -77,14 +77,14 @@ export function AddressSearch({ onSelect, near, placeholder = "Rechercher une ad
         }}
         placeholder={placeholder}
         autoComplete="off"
-        className="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-foreground"
+        className="w-full rounded-xl border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-foreground"
       />
       {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">Recherche indisponible</p>}
       {visible.length > 0 && (
         <ul
           id={listId}
           role="listbox"
-          className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-lg border border-border bg-background shadow-lg"
+          className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-xl border border-border bg-background shadow-lg"
         >
           {visible.map((place, i) => (
             <li

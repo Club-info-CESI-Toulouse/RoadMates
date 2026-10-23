@@ -664,6 +664,8 @@ export type Database = {
     Functions: {
       accept_trip_request: { Args: { p_id: string }; Returns: undefined }
       cancel_trip_request: { Args: { p_id: string }; Returns: undefined }
+      change_class: { Args: { p_name: string }; Returns: string }
+      class_names: { Args: never; Returns: string[] }
       create_trip_request: {
         Args: {
           p_date: string
@@ -693,6 +695,10 @@ export type Database = {
       establishment_id_for_email: { Args: { p_email: string }; Returns: string }
       expire_trip_requests: { Args: never; Returns: undefined }
       get_or_create_conversation: { Args: { p_other: string }; Returns: string }
+      group_for_class: {
+        Args: { p_establishment: string; p_name: string }
+        Returns: string
+      }
       mark_conversation_read: { Args: { p_id: string }; Returns: undefined }
       my_ride_stats: {
         Args: never

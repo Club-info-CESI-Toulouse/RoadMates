@@ -4,6 +4,7 @@ export const ALLOWED_EMAIL_DOMAIN = "viacesi.fr";
 export const PASSWORD_MIN_LENGTH = 8;
 export const DISPLAY_NAME_MAX_LENGTH = 40;
 export const CODE_LENGTH = 6;
+export const CLASS_NAME_MAX_LENGTH = 60;
 export const MAX_CODE_ATTEMPTS = 5;
 
 export const emailSchema = z
@@ -21,6 +22,17 @@ export const displayNameSchema = z
   .trim()
   .min(1, "Indique un pseudo ou un prénom")
   .max(DISPLAY_NAME_MAX_LENGTH, `${DISPLAY_NAME_MAX_LENGTH} caractères maximum`);
+
+export const classNameSchema = z
+  .string()
+  .trim()
+  .transform((v) => v.replace(/\s+/g, " "))
+  .pipe(
+    z
+      .string()
+      .min(2, "Indique ta classe (ex. CPI A2)")
+      .max(CLASS_NAME_MAX_LENGTH, `${CLASS_NAME_MAX_LENGTH} caractères maximum`),
+  );
 
 const password = z
   .string()
@@ -46,6 +58,7 @@ export const signUpSchema = z
     password,
     passwordConfirm: z.string(),
     displayName: displayNameSchema,
+    className: classNameSchema,
   })
   .refine(withConfirmation, confirmationError);
 

@@ -16,7 +16,7 @@ export default function TripsPage() {
       action={
         <Link
           href="/trajets/nouveau"
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
         >
           + Nouveau
         </Link>

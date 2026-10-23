@@ -30,7 +30,7 @@ export function TripCard({ trip }: { trip: TripView }) {
 
   return (
     <li
-      className={`flex flex-col gap-3 rounded-xl border border-border p-4 ${trip.isActive ? "" : "opacity-60"}`}
+      className={`flex flex-col gap-3 rounded-3xl border border-border bg-card shadow-sm p-4 ${trip.isActive ? "" : "opacity-60"}`}
     >
       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
         <span className="rounded-full bg-primary px-2.5 py-1 text-primary-foreground">

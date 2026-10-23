@@ -9,7 +9,7 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
 };
 
 const inputClass =
-  "rounded-lg border border-border bg-surface px-3 py-2.5 text-base font-normal outline-none focus:border-foreground aria-invalid:border-red-500";
+  "rounded-xl border border-border bg-surface px-3 py-2.5 text-base font-normal outline-none focus:border-foreground aria-invalid:border-red-500";
 
 export function Field({ label, name, error, className, ...props }: FieldProps) {
   const errorId = error ? `${name}-error` : undefined;
@@ -37,7 +37,7 @@ export function SubmitButton({ pending, children }: { pending: boolean; children
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-primary px-4 py-2.5 font-semibold text-primary-foreground transition-opacity disabled:opacity-60"
+      className="rounded-full bg-primary px-4 py-2.5 font-semibold text-primary-foreground transition-opacity disabled:opacity-60"
     >
       {pending ? "Patiente…" : children}
     </button>

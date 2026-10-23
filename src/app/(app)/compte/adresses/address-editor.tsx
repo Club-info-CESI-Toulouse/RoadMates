@@ -40,7 +40,7 @@ export function AddressEditor({ kind, current }: Props) {
   }
 
   return (
-    <li className="flex flex-col gap-3 rounded-xl border border-border p-4">
+    <li className="flex flex-col gap-3 rounded-3xl border border-border bg-card shadow-sm p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold">{ADDRESS_LABELS[kind]}</p>
@@ -75,7 +75,7 @@ export function AddressEditor({ kind, current }: Props) {
               type="button"
               disabled={!draft || pending}
               onClick={() => draft && run(() => saveAddress(kind, draft))}
-              className="rounded-lg bg-primary px-4 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
+              className="rounded-full bg-primary px-4 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
             >
               {pending ? "Patiente…" : "Enregistrer"}
             </button>

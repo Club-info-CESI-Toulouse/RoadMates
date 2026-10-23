@@ -53,5 +53,5 @@ export function PointsMap({ points, className }: { points: MapPoint[]; className
     };
   }, []);
 
-  return <div ref={container} className={className ?? "h-56 w-full overflow-hidden rounded-xl"} />;
+  return <div ref={container} className={className ?? "h-56 w-full overflow-hidden rounded-2xl"} />;
 }

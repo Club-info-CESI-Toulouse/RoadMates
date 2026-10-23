@@ -20,7 +20,7 @@ export function HelpDialog() {
       <dialog
         ref={dialog}
         onClick={(e) => e.target === dialog.current && dialog.current.close()}
-        className="m-auto w-[min(32rem,calc(100%-2rem))] rounded-2xl bg-background p-0 text-foreground backdrop:bg-black/60"
+        className="m-auto w-[min(32rem,calc(100%-2rem))] rounded-3xl bg-card p-0 text-foreground shadow-xl backdrop:bg-black/60"
       >
         <div className="flex flex-col gap-4 p-6 text-sm">
           <h2 className="text-lg font-bold">Comment ça marche</h2>
@@ -44,7 +44,7 @@ export function HelpDialog() {
             </li>
             <li>Un covoiturage accepté peut être annulé jusqu&apos;à 5 min avant le départ du conducteur.</li>
           </ol>
-          <p className="rounded-lg bg-surface p-3">
+          <p className="rounded-xl bg-surface p-3">
             <strong>Horaires estimés, hors trafic.</strong> Les durées sont calculées en circulation
             fluide, sans bouchons. RoadMates est une aide à l&apos;organisation : confirmez
             l&apos;horaire entre vous via la messagerie.
@@ -52,7 +52,7 @@ export function HelpDialog() {
           <button
             type="button"
             onClick={() => dialog.current?.close()}
-            className="self-end rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground"
+            className="self-end rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground"
           >
             Compris
           </button>

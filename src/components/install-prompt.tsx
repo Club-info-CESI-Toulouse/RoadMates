@@ -64,7 +64,7 @@ export function InstallPrompt({ dismissible = false }: { dismissible?: boolean }
   }
 
   return (
-    <aside className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 text-sm">
+    <aside className="flex flex-col gap-3 rounded-3xl border border-border bg-card shadow-sm bg-surface p-4 text-sm">
       <div className="flex items-start justify-between gap-3">
         <p className="font-semibold">Installe RoadMates sur ton téléphone</p>
         {dismissible && (
@@ -90,7 +90,7 @@ export function InstallPrompt({ dismissible = false }: { dismissible?: boolean }
         <button
           type="button"
           onClick={() => deferred?.prompt().then(() => setDeferred(null))}
-          className="self-start rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground"
+          className="self-start rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground"
         >
           Installer l&apos;application
         </button>

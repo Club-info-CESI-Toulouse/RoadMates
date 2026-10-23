@@ -57,7 +57,7 @@ function Segmented<T extends string>({
   return (
     <fieldset className="flex flex-col gap-1.5">
       <legend className="mb-1.5 text-sm font-medium">{label}</legend>
-      <div className="grid grid-cols-2 gap-1 rounded-lg bg-surface p-1">
+      <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface p-1">
         {(Object.keys(options) as T[]).map((key) => (
           <button
             key={key}
@@ -108,7 +108,7 @@ function Range({
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-border p-4">
+    <section className="flex flex-col gap-4 rounded-3xl border border-border bg-card shadow-sm p-4">
       <h2 className="font-semibold">{title}</h2>
       {children}
     </section>
@@ -116,7 +116,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 const inputClass =
-  "rounded-lg border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-foreground aria-invalid:border-red-500";
+  "rounded-xl border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-foreground aria-invalid:border-red-500";
 
 export function TripForm({ tripId, initial, available }: Props) {
   const router = useRouter();
@@ -271,7 +271,7 @@ export function TripForm({ tripId, initial, available }: Props) {
           </label>
         </div>
         {errors.arrivalTime && (
-          <p role="alert" className="rounded-lg bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">
+          <p role="alert" className="rounded-xl bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">
             {errors.arrivalTime}
           </p>
         )}
@@ -348,7 +348,7 @@ export function TripForm({ tripId, initial, available }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-primary px-5 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
+          className="rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
         >
           {pending ? "Calcul du trajet…" : "Enregistrer"}
         </button>

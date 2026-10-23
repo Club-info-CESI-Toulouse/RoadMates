@@ -69,7 +69,7 @@ export function NotificationSettings({ pushEnabled, emailEnabled }: { pushEnable
         <input type="checkbox" className="size-5 accent-primary" checked={emailEnabled} disabled={pending} onChange={(e) => toggle("email", e.target.checked)} />
       </label>
       {pushEnabled && (
-        <div className="flex flex-col gap-2 rounded-lg bg-surface p-3">
+        <div className="flex flex-col gap-2 rounded-xl bg-surface p-3">
           {device === "on" && (
             <div className="flex items-center justify-between gap-3">
               <span>Push activé sur cet appareil</span>
@@ -79,7 +79,7 @@ export function NotificationSettings({ pushEnabled, emailEnabled }: { pushEnable
             </div>
           )}
           {device === "off" && (
-            <button type="button" disabled={pending} onClick={enableDevice} className="self-start rounded-lg bg-primary px-3 py-2 font-semibold text-primary-foreground disabled:opacity-60">
+            <button type="button" disabled={pending} onClick={enableDevice} className="self-start rounded-full bg-primary px-3 py-2 font-semibold text-primary-foreground disabled:opacity-60">
               Activer le push sur cet appareil
             </button>
           )}
