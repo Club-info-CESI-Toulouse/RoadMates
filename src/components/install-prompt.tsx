@@ -6,16 +6,18 @@ const DISMISS_KEY = "install-prompt-dismissed";
 
 type BeforeInstallPromptEvent = Event & { prompt: () => Promise<void> };
 
-type Platform = { ios: boolean; standalone: boolean };
-const SERVER_PLATFORM: Platform = { ios: false, standalone: true };
+type Platform = { ios: boolean; mobile: boolean; standalone: boolean };
+const SERVER_PLATFORM: Platform = { ios: false, mobile: false, standalone: true };
 let cached: Platform | null = null;
 
 function readPlatform(): Platform {
   if (!cached) {
     const ua = navigator.userAgent;
+    // iPadOS reports itself as a Mac with touch support.
+    const ios = /iPad|iPhone|iPod/.test(ua) || (ua.includes("Mac") && navigator.maxTouchPoints > 1);
     cached = {
-      // iPadOS reports itself as a Mac with touch support.
-      ios: /iPad|iPhone|iPod/.test(ua) || (ua.includes("Mac") && navigator.maxTouchPoints > 1),
+      ios,
+      mobile: ios || /Android|Mobi/i.test(ua),
       standalone:
         window.matchMedia("(display-mode: standalone)").matches ||
         (navigator as Navigator & { standalone?: boolean }).standalone === true,
@@ -34,7 +36,7 @@ function readDismissed() {
 
 const noopSubscribe = () => () => {};
 
-// Install guide: iOS gets manual steps (Safari has no install prompt), others a button.
+// Install guide, mobile only: iOS gets manual steps (Safari has no install prompt), others a button.
 export function InstallPrompt({ dismissible = false }: { dismissible?: boolean }) {
   const platform = useSyncExternalStore(noopSubscribe, readPlatform, () => SERVER_PLATFORM);
   const storedDismissed = useSyncExternalStore(noopSubscribe, readDismissed, () => true);
@@ -50,7 +52,7 @@ export function InstallPrompt({ dismissible = false }: { dismissible?: boolean }
     return () => window.removeEventListener("beforeinstallprompt", onPrompt);
   }, []);
 
-  if (platform.standalone) return null;
+  if (platform.standalone || !platform.mobile) return null;
   if (dismissible && (storedDismissed || dismissed)) return null;
   if (!platform.ios && !deferred) return null;
 
