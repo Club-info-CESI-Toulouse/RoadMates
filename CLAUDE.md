@@ -91,5 +91,5 @@ Après la phase 11 : préparation Partie B (plusieurs classes, toute l'école, m
 - [x] 1 · [x] 2 · [x] 3 · [x] 4 · [ ] 5 · [ ] 6 · [ ] 7 · [ ] 8 · [ ] 9 · [ ] 10 · [ ] 11
 - Notes de reprise (3 lignes max) :
   - Supabase ref `rsvxhhpkbpiupmgfavud`, prod https://roadmates.vercel.app. Auth : trigger @viacesi.fr + profil auto (classe unique), codes 6 chiffres (5 essais, table `verification_attempts`), chiffrement `src/lib/crypto/address.ts`.
-  - Phases 3-4 : SW natif `public/sw.js` (push à ajouter phase 9), module `src/lib/geo` (IGN ; ORS à ajouter phase 6, clé `ORS_API_KEY` absente). Adresse du campus CESI à renseigner dans `establishments` (école par défaut).
+  - Phases 3-4 : SW natif `public/sw.js` (push à ajouter phase 9), module `src/lib/geo` (IGN ; ORS à ajouter phase 6, clé `ORS_API_KEY` absente). École par défaut : campus CESI Labège (`establishments`).
   - À faire par Yoan : test inscription réel avec son adresse @viacesi.fr.
