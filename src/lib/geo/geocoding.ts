@@ -1,4 +1,5 @@
 import "server-only";
+import { cacheLife } from "next/cache";
 import { z } from "zod";
 import type { LatLon, Place } from "./types";
 
@@ -38,7 +39,10 @@ export function searchAddresses(text: string, near?: LatLon): Promise<Place[]> {
   });
 }
 
+/** Cached: meeting points repeat on every page load. */
 export async function reverseGeocode(point: LatLon): Promise<Place | null> {
+  "use cache";
+  cacheLife("weeks");
   const [place] = await query("reverse", {
     lat: String(point.lat),
     lon: String(point.lon),

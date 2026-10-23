@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentProfile = {
@@ -9,8 +10,8 @@ export type CurrentProfile = {
   groupName: string | null;
 };
 
-// Data access layer: the signed-in user's own profile. Redirects when signed out.
-export async function getCurrentProfile(): Promise<CurrentProfile> {
+// Data access layer: the signed-in user's own profile (once per request). Redirects when signed out.
+export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getClaims();
   const claims = auth?.claims;
@@ -29,4 +30,4 @@ export async function getCurrentProfile(): Promise<CurrentProfile> {
     displayName: profile.display_name,
     groupName: profile.groups?.name ?? null,
   };
-}
+});
