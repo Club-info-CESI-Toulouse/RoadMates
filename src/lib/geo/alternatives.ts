@@ -38,6 +38,15 @@ export function mainRoad(steps: { name?: string; distance: number }[]): string |
   return [...byName.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }
 
+/** Alternatives this close are the same road for the user: keep the first only. */
+export function isNearDuplicate(a: { distanceM: number; durationS: number }, b: { distanceM: number; durationS: number }) {
+  return Math.abs(a.distanceM - b.distanceM) <= Math.max(150, a.distanceM * 0.02) && Math.abs(a.durationS - b.durationS) <= 60;
+}
+
+export function dedupeRoutes<T extends { distanceM: number; durationS: number }>(routes: T[]): T[] {
+  return routes.filter((r, i) => !routes.slice(0, i).some((kept) => isNearDuplicate(kept, r)));
+}
+
 /** "Via <road>" when it tells the routes apart, otherwise "Itinéraire n". */
 export function labelRoutes(roads: (string | null)[]): string[] {
   return roads.map((road, i) =>
@@ -63,12 +72,12 @@ export async function getRouteAlternatives(from: LatLon, to: LatLon): Promise<La
     });
     if (!res.ok) throw new Error(`ORS ${res.status}`);
     const parsed = responseSchema.parse(await res.json());
-    const routes = parsed.features.map((f) => ({
+    const routes = dedupeRoutes(parsed.features.map((f) => ({
       distanceM: Math.round(f.properties.summary.distance),
       durationS: Math.round(f.properties.summary.duration),
       geometry: f.geometry.coordinates,
       road: mainRoad(f.properties.segments.flatMap((s) => s.steps)),
-    }));
+    })));
     const labels = labelRoutes(routes.map((r) => r.road));
     return routes.map((r, i) => ({ distanceM: r.distanceM, durationS: r.durationS, geometry: r.geometry, label: labels[i] }));
   } catch {
