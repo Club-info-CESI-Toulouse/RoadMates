@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { PointsMap } from "@/components/map/points-map";
 import { MessageButton } from "@/components/message-button";
@@ -26,7 +27,12 @@ export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked 
     <li className="flex flex-col gap-3 rounded-3xl border border-border bg-card shadow-sm p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-semibold">{other.displayName}</p>
+          <Link
+            href={`/proposition/${myTripId}/${other.tripId}?date=${date}`}
+            className="font-semibold underline-offset-4 hover:underline"
+          >
+            {other.displayName}
+          </Link>
           <p className="text-sm text-muted">
             {ROLE_LABELS[other.role]}
             {other.role === "driver" && ` · ${proposal.seatsLeft} place${proposal.seatsLeft > 1 ? "s" : ""} libre${proposal.seatsLeft > 1 ? "s" : ""}`}
@@ -71,6 +77,12 @@ export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked 
       </p>
       <p className="text-xs text-muted">Horaires estimés, hors trafic.</p>
 
+      <Link
+        href={`/proposition/${myTripId}/${other.tripId}?date=${date}`}
+        className="self-start text-sm font-semibold underline"
+      >
+        Voir le détail du trajet
+      </Link>
       <button type="button" onClick={() => setShowMap((v) => !v)} className="self-start text-sm underline">
         {showMap ? "Masquer la carte" : "Voir les points sur la carte"}
       </button>

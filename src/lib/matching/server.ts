@@ -36,6 +36,21 @@ export type ProposalMatch = Pick<
   "pickup" | "dropoff" | "driverDepartureMin" | "pickupMin" | "dropoffMin" | "walkMin" | "detourMin" | "detourM" | "score"
 >;
 
+/** Fields of a match safe to send to the client (no route geometry). */
+export function publicMatch(m: Match): ProposalMatch {
+  return {
+    pickup: m.pickup,
+    dropoff: m.dropoff,
+    driverDepartureMin: m.driverDepartureMin,
+    pickupMin: m.pickupMin,
+    dropoffMin: m.dropoffMin,
+    walkMin: m.walkMin,
+    detourMin: m.detourMin,
+    detourM: m.detourM,
+    score: m.score,
+  };
+}
+
 export type Proposal = {
   other: { tripId: string; userId: string; displayName: string; role: Role };
   match: ProposalMatch;
@@ -245,8 +260,9 @@ export async function getProposals(userId: string, date: string): Promise<TripSe
           };
         } else {
           if (load.seatsLeft === 0) return null;
-          match = await matchPair(driver, passenger, load.fixedDepartureMin);
-          if (!match || zonedInstant(date, match.driverDepartureMin).getTime() <= now) return null;
+          const full = await matchPair(driver, passenger, load.fixedDepartureMin);
+          if (!full || zonedInstant(date, full.driverDepartureMin).getTime() <= now) return null;
+          match = publicMatch(full);
         }
 
         const proposal: Proposal = {
