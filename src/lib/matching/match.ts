@@ -122,10 +122,11 @@ export async function computeMatch(
   driver: MatchTrip,
   passenger: MatchTrip,
   deps: MatchDeps,
-  options: { fixedDepartureMin?: number | null } = {},
+  options: { fixedDepartureMin?: number | null; baseRoute?: DrivingRoute } = {},
 ): Promise<Match | null> {
   if (driver.ownerId === passenger.ownerId) return null;
-  const base = await deps.driving([driver.origin, driver.destination]);
+  // The driver's chosen route (or one of the alternatives), else the fastest one.
+  const base = options.baseRoute ?? (await deps.driving([driver.origin, driver.destination]));
   if (base.geometry.length < 2) return null;
 
   const onOrigin = projectOnPolyline(passenger.origin, base.geometry);

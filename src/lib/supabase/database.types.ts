@@ -58,14 +58,57 @@ export type Database = {
           },
         ]
       }
+      commute_routes: {
+        Row: {
+          commute_id: string
+          created_at: string
+          direction: Database["public"]["Enums"]["trip_slot"]
+          distance_m: number
+          duration_s: number
+          geometry_encrypted: string
+          idx: number
+          label: string
+        }
+        Insert: {
+          commute_id: string
+          created_at?: string
+          direction: Database["public"]["Enums"]["trip_slot"]
+          distance_m: number
+          duration_s: number
+          geometry_encrypted: string
+          idx: number
+          label: string
+        }
+        Update: {
+          commute_id?: string
+          created_at?: string
+          direction?: Database["public"]["Enums"]["trip_slot"]
+          distance_m?: number
+          duration_s?: number
+          geometry_encrypted?: string
+          idx?: number
+          label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commute_routes_commute_id_fkey"
+            columns: ["commute_id"]
+            isOneToOne: false
+            referencedRelation: "commutes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commutes: {
         Row: {
           created_at: string
           destination_address_id: string
+          evening_route: number | null
           group_id: string
           id: string
           is_active: boolean
           max_walk_min: number
+          morning_route: number | null
           origin_address_id: string
           owner_id: string
           role: Database["public"]["Enums"]["trip_role"]
@@ -75,10 +118,12 @@ export type Database = {
         Insert: {
           created_at?: string
           destination_address_id: string
+          evening_route?: number | null
           group_id: string
           id?: string
           is_active?: boolean
           max_walk_min?: number
+          morning_route?: number | null
           origin_address_id: string
           owner_id: string
           role: Database["public"]["Enums"]["trip_role"]
@@ -88,10 +133,12 @@ export type Database = {
         Update: {
           created_at?: string
           destination_address_id?: string
+          evening_route?: number | null
           group_id?: string
           id?: string
           is_active?: boolean
           max_walk_min?: number
+          morning_route?: number | null
           origin_address_id?: string
           owner_id?: string
           role?: Database["public"]["Enums"]["trip_role"]

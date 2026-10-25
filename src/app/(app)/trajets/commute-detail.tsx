@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import { AddressPin } from "@/components/address-pin";
@@ -132,6 +133,35 @@ export function CommuteDetail({ commute, addresses }: { commute: CommuteView; ad
           </section>
         );
       })}
+
+      {commute.role === "driver" && (
+        <section className={card}>
+          <h2 className="text-lg font-semibold">Itinéraires</h2>
+          <ul className="flex flex-col divide-y divide-border">
+            {(["morning", "evening"] as const).map((direction) => {
+              const choice = commute.routeChoice[direction];
+              const label =
+                choice === null ? "Tous les itinéraires" : (commute.routes[direction].find((r) => r.idx === choice)?.label ?? "Tous les itinéraires");
+              return (
+                <li key={direction}>
+                  <Link
+                    href={`/trajets/${commute.id}/itineraire/${direction === "morning" ? "aller" : "retour"}`}
+                    className="flex items-center justify-between gap-3 py-3"
+                  >
+                    <span className="flex flex-col">
+                      <span className="text-sm text-muted">{DIRECTION_LABELS[direction]}</span>
+                      <span className="font-medium">{label}</span>
+                    </span>
+                    <span aria-hidden="true" className="text-muted">
+                      ›
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       <div className="flex flex-wrap gap-4 text-sm">
         <button

@@ -1,7 +1,9 @@
 import "server-only";
 import type { AddressIcon } from "@/lib/addresses/constants";
 import { listMyAddresses } from "@/lib/addresses/server";
-import { getRoute, RoutingUnavailableError } from "@/lib/geo";
+import { decrypt, encrypt } from "@/lib/crypto/address";
+import { getRoute, getRouteAlternatives, RoutingUnavailableError } from "@/lib/geo";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 import { formatDuration, resolveTimes } from "@/lib/trips/times";
@@ -21,9 +23,14 @@ export type SlotView = SlotValues & {
   arrival: string | null;
 };
 
+export type RouteOption = { idx: number; label: string; distanceM: number; durationS: number };
+
 export type CommuteView = Commute & {
   id: string;
   isActive: boolean;
+  /** Driver's chosen route per direction; null = all routes. */
+  routeChoice: Record<Direction, number | null>;
+  routes: Record<Direction, RouteOption[]>;
   origin: AddressRef;
   destination: AddressRef;
   slots: SlotView[];
@@ -75,11 +82,16 @@ const SLOT_COLUMNS =
 
 export async function listMyCommutes(userId: string): Promise<CommuteView[]> {
   const supabase = await createClient();
-  const [{ data: commutes }, { data: addresses }, { data: slots }] = await Promise.all([
+  const [{ data: commutes }, { data: addresses }, { data: slots }, { data: routes }] = await Promise.all([
     supabase.from("commutes").select("*").eq("owner_id", userId).order("created_at"),
     supabase.from("addresses").select("id, name, icon").eq("user_id", userId),
     supabase.from("trips").select(`commute_id, ${SLOT_COLUMNS}`).eq("owner_id", userId),
+    supabase.from("commute_routes").select("commute_id, direction, idx, label, distance_m, duration_s").order("idx"),
   ]);
+  const routesOf = (id: string, direction: Direction) =>
+    (routes ?? [])
+      .filter((r) => r.commute_id === id && r.direction === direction)
+      .map((r) => ({ idx: r.idx, label: r.label, distanceM: r.distance_m, durationS: r.duration_s }));
   const byId = new Map((addresses ?? []).map((a) => [a.id, a]));
 
   return (commutes ?? []).map((c) => ({
@@ -90,6 +102,8 @@ export async function listMyCommutes(userId: string): Promise<CommuteView[]> {
     destinationAddressId: c.destination_address_id,
     maxWalkMin: c.max_walk_min,
     isActive: c.is_active,
+    routeChoice: { morning: c.morning_route, evening: c.evening_route },
+    routes: { morning: routesOf(c.id, "morning"), evening: routesOf(c.id, "evening") },
     origin: byId.get(c.origin_address_id) ?? UNKNOWN,
     destination: byId.get(c.destination_address_id) ?? UNKNOWN,
     slots: (slots ?? [])
@@ -101,6 +115,79 @@ export async function listMyCommutes(userId: string): Promise<CommuteView[]> {
 
 export async function getMyCommute(userId: string, id: string) {
   return (await listMyCommutes(userId)).find((c) => c.id === id) ?? null;
+}
+
+/**
+ * Computes and stores the driving alternatives of both directions (one ORS call each),
+ * resetting the driver's choice. Done when the commute or its addresses change.
+ */
+export async function computeCommuteRoutes(userId: string, commuteId: string) {
+  const commute = await getMyCommute(userId, commuteId);
+  if (!commute) return;
+  const addresses = await listMyAddresses(userId);
+  const a = addresses.find((x) => x.id === commute.originAddressId);
+  const b = addresses.find((x) => x.id === commute.destinationAddressId);
+  if (!a || !b) return;
+
+  const admin = createAdminClient();
+  for (const direction of ["morning", "evening"] as const) {
+    const [from, to] = direction === "morning" ? [a, b] : [b, a];
+    let routes;
+    try {
+      routes = await getRouteAlternatives(from, to);
+    } catch {
+      continue;
+    }
+    await admin.from("commute_routes").delete().eq("commute_id", commuteId).eq("direction", direction);
+    await admin.from("commute_routes").insert(
+      routes.map((r, idx) => ({
+        commute_id: commuteId,
+        direction,
+        idx,
+        label: r.label,
+        distance_m: r.distanceM,
+        duration_s: r.durationS,
+        geometry_encrypted: encrypt(r.geometry),
+      })),
+    );
+  }
+  await createClient().then((s) =>
+    s.from("commutes").update({ morning_route: null, evening_route: null }).eq("id", commuteId).eq("owner_id", userId),
+  );
+}
+
+/** Commutes whose routes are missing (created before §17 C) get them computed once. */
+export async function ensureCommuteRoutes(userId: string, commute: CommuteView) {
+  if (commute.role !== "driver" || (commute.routes.morning.length && commute.routes.evening.length)) return false;
+  await computeCommuteRoutes(userId, commute.id);
+  return true;
+}
+
+/** Route geometries of one direction, for the owner's map. */
+export async function getMyRouteGeometries(userId: string, commuteId: string, direction: Direction) {
+  const commute = await getMyCommute(userId, commuteId);
+  if (!commute) return null;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("commute_routes")
+    .select("idx, geometry_encrypted")
+    .eq("commute_id", commuteId)
+    .eq("direction", direction)
+    .order("idx");
+  return {
+    commute,
+    geometries: (data ?? []).map((r) => ({ idx: r.idx, geometry: decrypt<[number, number][]>(r.geometry_encrypted) })),
+  };
+}
+
+export async function setMyRouteChoice(userId: string, commuteId: string, direction: Direction, idx: number | null) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("commutes")
+    .update(direction === "morning" ? { morning_route: idx } : { evening_route: idx })
+    .eq("id", commuteId)
+    .eq("owner_id", userId);
+  return !error;
 }
 
 export async function saveMyCommute(userId: string, commute: Commute, id?: string): Promise<ActionResult> {
@@ -122,11 +209,18 @@ export async function saveMyCommute(userId: string, commute: Commute, id?: strin
     destination_address_id: commute.destinationAddressId,
     max_walk_min: commute.maxWalkMin,
   };
+  // Read before updating: routes are recomputed only when the addresses change.
+  const before = id
+    ? (await supabase.from("commutes").select("origin_address_id, destination_address_id").eq("id", id).single()).data
+    : null;
   const { data, error } = id
     ? await supabase.from("commutes").update(row).eq("id", id).eq("owner_id", userId).select("id").single()
     : await supabase.from("commutes").insert(row).select("id").single();
   if (error || !data) return { ok: false, error: "Impossible d'enregistrer le trajet, réessaie" };
+  const moved =
+    !before || before.origin_address_id !== commute.originAddressId || before.destination_address_id !== commute.destinationAddressId;
   if (id) await refreshDurations(userId, id);
+  if (commute.role === "driver" && (moved || !before)) await computeCommuteRoutes(userId, data.id);
   return { ok: true, id: data.id };
 }
 
@@ -241,4 +335,12 @@ export async function setMyCommuteActive(userId: string, id: string, isActive: b
   const supabase = await createClient();
   const { error } = await supabase.from("commutes").update({ is_active: isActive }).eq("id", id).eq("owner_id", userId);
   return !error;
+}
+
+/** After an address moved: recompute the routes of the driver commutes using it. */
+export async function refreshRoutesForAddress(userId: string, addressId: string) {
+  const commutes = await listMyCommutes(userId);
+  for (const c of commutes)
+    if (c.role === "driver" && (c.originAddressId === addressId || c.destinationAddressId === addressId))
+      await computeCommuteRoutes(userId, c.id);
 }

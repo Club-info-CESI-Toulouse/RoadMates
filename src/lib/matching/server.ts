@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 import { toMinutes } from "@/lib/trips/times";
-import { computeMatch, estimateWalkMin, type Match, type MatchDeps, type MatchTrip } from "./match";
+import { computeMatch, estimateWalkMin, type DrivingRoute, type Match, type MatchDeps, type MatchTrip } from "./match";
 
 type Role = Database["public"]["Enums"]["trip_role"];
 type Slot = Database["public"]["Enums"]["trip_slot"];
@@ -17,6 +17,8 @@ export type LoadedTrip = MatchTrip & {
   slot: Slot;
   seats: number | null;
   durationS: number;
+  /** Driver routes the algorithm may use (chosen one or all alternatives); none = fastest. */
+  routes?: DrivingRoute[];
   /** Address names: only meaningful to the trip owner. */
   originName: string;
   destinationName: string;
@@ -78,6 +80,28 @@ const runsOn = (t: { weekdays: number[]; valid_from: string | null; valid_until:
   (!t.valid_from || t.valid_from <= date) &&
   (!t.valid_until || date <= t.valid_until);
 
+/** Allowed driving routes per "commuteId:direction", decrypted server-side. */
+async function driverRoutes(trips: { commute_id: string; slot: "morning" | "evening" }[]) {
+  const result = new Map<string, DrivingRoute[]>();
+  const commuteIds = [...new Set(trips.map((t) => t.commute_id))];
+  if (commuteIds.length === 0) return result;
+  const admin = createAdminClient();
+  const [{ data: commutes }, { data: rows }] = await Promise.all([
+    admin.from("commutes").select("id, morning_route, evening_route").in("id", commuteIds),
+    admin.from("commute_routes").select("commute_id, direction, idx, distance_m, duration_s, geometry_encrypted").in("commute_id", commuteIds),
+  ]);
+  const choice = new Map((commutes ?? []).map((c) => [c.id, { morning: c.morning_route, evening: c.evening_route }]));
+  for (const r of rows ?? []) {
+    const chosen = choice.get(r.commute_id)?.[r.direction];
+    if (chosen != null && chosen !== r.idx) continue;
+    const key = `${r.commute_id}:${r.direction}`;
+    const list = result.get(key) ?? [];
+    list.push({ distanceM: r.distance_m, durationS: r.duration_s, geometry: decrypt<[number, number][]>(r.geometry_encrypted) });
+    result.set(key, list);
+  }
+  return result;
+}
+
 /**
  * Active trips running on `date` that the viewer may see (RLS), with addresses
  * decrypted server-side. Addresses never leave the server.
@@ -87,7 +111,7 @@ export async function loadTrips(date: string, filter?: { ids?: string[] }): Prom
   let query = supabase
     .from("trips")
     .select(
-      "id, owner_id, role, slot, seats, weekdays, departure_time, arrival_time, estimated_duration_s, flex_before_min, flex_after_min, max_walk_min, valid_from, valid_until, origin_address_id, destination_address_id",
+      "id, commute_id, owner_id, role, slot, seats, weekdays, departure_time, arrival_time, estimated_duration_s, flex_before_min, flex_after_min, max_walk_min, valid_from, valid_until, origin_address_id, destination_address_id",
     )
     .eq("is_active", true);
   if (filter?.ids) query = query.in("id", filter.ids);
@@ -101,6 +125,7 @@ export async function loadTrips(date: string, filter?: { ids?: string[] }): Prom
     .select("id, name, payload_encrypted")
     .in("id", addressIds);
   const byId = new Map((addresses ?? []).map((a) => [a.id, { name: a.name, place: decrypt<Place>(a.payload_encrypted) }]));
+  const routes = await driverRoutes(trips.filter((t) => t.role === "driver"));
 
   return trips.flatMap((t) => {
     const origin = byId.get(t.origin_address_id);
@@ -114,6 +139,7 @@ export async function loadTrips(date: string, filter?: { ids?: string[] }): Prom
         slot: t.slot,
         seats: t.seats,
         durationS: t.estimated_duration_s!,
+        routes: routes.get(`${t.commute_id}:${t.slot}`),
         origin: { lat: origin.place.lat, lon: origin.place.lon },
         destination: { lat: destination.place.lat, lon: destination.place.lon },
         originName: origin.name,
@@ -147,7 +173,13 @@ async function occurrenceLoads(drivers: LoadedTrip[], date: string): Promise<Map
 /** Match between two trips on a date, or null. Errors from routing count as "no match". */
 export async function matchPair(driver: LoadedTrip, passenger: LoadedTrip, fixedDepartureMin: number | null) {
   try {
-    return await computeMatch(driver, passenger, deps, { fixedDepartureMin });
+    // "All routes": the passenger may be picked up on any alternative; keep the best.
+    let best: Match | null = null;
+    for (const baseRoute of driver.routes?.length ? driver.routes : [undefined]) {
+      const match = await computeMatch(driver, passenger, deps, { fixedDepartureMin, baseRoute });
+      if (match && (!best || match.score > best.score)) best = match;
+    }
+    return best;
   } catch (e) {
     if (e instanceof RoutingUnavailableError) return null;
     throw e;

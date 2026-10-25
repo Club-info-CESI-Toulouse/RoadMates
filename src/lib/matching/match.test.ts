@@ -124,6 +124,18 @@ describe("computeMatch", () => {
     expect(calls.at(-1)).toHaveLength(3);
   });
 
+  it("uses the driver's chosen route instead of the fastest one", async () => {
+    const calls: LatLon[][] = [];
+    // Chosen route bends north through the passenger's street.
+    const geometry: [number, number][] = [[1.4, LAT], [1.5, LAT + 0.02], [1.6, LAT]];
+    const baseRoute = { distanceM: 18000, durationS: 1800, geometry };
+    const passenger = trip({ id: "p", ownerId: "b", origin: at(1.5, LAT + 0.02), arrivalMin: 520 });
+    const m = await computeMatch(driver, passenger, deps(calls), { baseRoute });
+    expect(m).not.toBeNull();
+    expect(m!.detourMin).toBe(0);
+    expect(calls).toHaveLength(0);
+  });
+
   it("rejects a passenger going the other way", async () => {
     const passenger = trip({ id: "p", ownerId: "b", origin: at(1.6), destination: at(1.4), arrivalMin: 510 });
     expect(await computeMatch(driver, passenger, deps())).toBeNull();

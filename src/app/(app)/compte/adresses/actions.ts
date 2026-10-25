@@ -5,6 +5,7 @@ import { z } from "zod";
 import { addressInputSchema, type AddressInput } from "@/lib/addresses/constants";
 import { deleteMyAddress, saveMyAddress } from "@/lib/addresses/server";
 import { getUserId } from "@/lib/auth/session";
+import { refreshRoutesForAddress } from "@/lib/commutes/server";
 import { refreshTripDurations } from "@/lib/trips/server";
 
 export type AddressActionResult =
@@ -28,7 +29,7 @@ export async function saveAddressAction(input: AddressInput, addressId?: string)
 
   const result = await saveMyAddress(userId, parsed.data, addressId);
   if (!result.ok) return { ok: false, error: result.error };
-  if (addressId) await refreshTripDurations(userId);
+  if (addressId) await Promise.all([refreshTripDurations(userId), refreshRoutesForAddress(userId, addressId)]);
   revalidatePath("/", "layout");
   return { ok: true };
 }
