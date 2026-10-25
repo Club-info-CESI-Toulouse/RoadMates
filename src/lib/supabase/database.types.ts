@@ -58,6 +58,48 @@ export type Database = {
           },
         ]
       }
+      commutes: {
+        Row: {
+          created_at: string
+          destination_address_id: string
+          group_id: string
+          id: string
+          is_active: boolean
+          max_walk_min: number
+          origin_address_id: string
+          owner_id: string
+          role: Database["public"]["Enums"]["trip_role"]
+          seats: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          destination_address_id: string
+          group_id: string
+          id?: string
+          is_active?: boolean
+          max_walk_min?: number
+          origin_address_id: string
+          owner_id: string
+          role: Database["public"]["Enums"]["trip_role"]
+          seats?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          destination_address_id?: string
+          group_id?: string
+          id?: string
+          is_active?: boolean
+          max_walk_min?: number
+          origin_address_id?: string
+          owner_id?: string
+          role?: Database["public"]["Enums"]["trip_role"]
+          seats?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           a_read_at: string | null
@@ -553,6 +595,7 @@ export type Database = {
       trips: {
         Row: {
           arrival_time: string | null
+          commute_id: string
           created_at: string
           departure_time: string | null
           destination_address_id: string
@@ -575,6 +618,7 @@ export type Database = {
         }
         Insert: {
           arrival_time?: string | null
+          commute_id: string
           created_at?: string
           departure_time?: string | null
           destination_address_id: string
@@ -597,6 +641,7 @@ export type Database = {
         }
         Update: {
           arrival_time?: string | null
+          commute_id?: string
           created_at?: string
           departure_time?: string | null
           destination_address_id?: string
