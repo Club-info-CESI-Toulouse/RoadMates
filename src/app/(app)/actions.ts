@@ -14,6 +14,7 @@ function done(result: RequestResult) {
   if (result.ok) {
     revalidatePath("/");
     revalidatePath("/trajets");
+    revalidatePath("/proposition", "layout");
   }
   return result;
 }

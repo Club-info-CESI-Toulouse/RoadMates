@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LatLon } from "@/lib/geo/types";
-import { haversineM, projectOnPolyline } from "./geometry";
+import { haversineM, projectOnPolyline, sliceBetween } from "./geometry";
 import { computeMatch, estimateWalkMin, scoreFromPenalty, solveDeparture, type MatchDeps, type MatchTrip } from "./match";
 
 // Straight west→east road at lat 43.5; 0.01° lon ≈ 807 m. Driving 10 m/s.
@@ -45,6 +45,17 @@ describe("projectOnPolyline", () => {
     expect(p.point.lon).toBeCloseTo(1.5, 6);
     expect(p.distanceM).toBeCloseTo(110.6, 0);
     expect(p.alongM / p.totalM).toBeCloseTo(0.5, 3);
+  });
+});
+
+describe("sliceBetween", () => {
+  it("keeps only the shared stretch", () => {
+    const line: [number, number][] = [[1.4, LAT], [1.45, LAT], [1.5, LAT], [1.55, LAT], [1.6, LAT]];
+    const part = sliceBetween(line, at(1.47, LAT + 0.001), at(1.53, LAT - 0.001));
+    expect(part[0][0]).toBeCloseTo(1.47, 5);
+    expect(part.at(-1)![0]).toBeCloseTo(1.53, 5);
+    expect(part.map((p) => p[0])).toContain(1.5);
+    expect(part.map((p) => p[0])).not.toContain(1.4);
   });
 });
 

@@ -48,6 +48,8 @@ export type Match = {
   rideM: number;
   /** 0–100, higher is better. */
   score: number;
+  /** Driver's route through the meeting points. Server-only: it reveals the driver's addresses. */
+  route: DrivingRoute;
 };
 
 /** Walking speed (m/min) and street-vs-crow-flies factor, for estimates only. */
@@ -245,6 +247,7 @@ export async function computeMatch(
     detourMin,
     detourM,
     rideM: Math.round(rideM),
+    route,
     score: scoreFromPenalty(Math.abs(t0 - solved.ideal) + passengerDeviation + 2 * detourMin + walkMin),
   };
 }

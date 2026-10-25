@@ -57,3 +57,28 @@ export function pointToward(from: LatLon, to: LatLon, meters: number): LatLon {
   const t = meters / total;
   return { lat: from.lat + t * (to.lat - from.lat), lon: from.lon + t * (to.lon - from.lon) };
 }
+
+/**
+ * Part of a polyline between the projections of `a` and `b` (in travel order),
+ * e.g. the stretch a passenger rides with the driver.
+ */
+export function sliceBetween(line: [number, number][], a: LatLon, b: LatLon): [number, number][] {
+  if (line.length < 2) return line;
+  const from = projectOnPolyline(a, line);
+  const to = projectOnPolyline(b, line);
+  if (to.alongM <= from.alongM) return [[from.point.lon, from.point.lat]];
+
+  const kx = Math.cos(rad(a.lat)) * 111_320;
+  const ky = 110_574;
+  const out: [number, number][] = [[from.point.lon, from.point.lat]];
+  let along = 0;
+  for (let i = 1; i < line.length; i++) {
+    const [lon1, lat1] = line[i - 1];
+    const [lon2, lat2] = line[i];
+    along += Math.hypot((lon2 - lon1) * kx, (lat2 - lat1) * ky);
+    if (along > from.alongM && along < to.alongM) out.push(line[i]);
+    if (along >= to.alongM) break;
+  }
+  out.push([to.point.lon, to.point.lat]);
+  return out;
+}
