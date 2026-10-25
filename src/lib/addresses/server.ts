@@ -121,3 +121,8 @@ export async function deleteMyAddress(
   const { error } = await supabase.from("addresses").delete().eq("id", id).eq("user_id", userId);
   return error ? { ok: false, error: "Suppression impossible, réessaie" } : { ok: true };
 }
+
+/** Names and icons only, for pickers (no location). */
+export async function listMyAddressOptions(userId: string) {
+  return (await listMyAddresses(userId)).map(({ id, name, icon }) => ({ id, name, icon }));
+}
