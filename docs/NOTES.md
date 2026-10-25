@@ -307,3 +307,37 @@ Chaque phase doit être **livrable et testable seule**. Ne passer à la suivante
 - Suivi GPS en temps réel pendant le trajet
 - Prise en compte du trafic en temps réel (bouchons)
 - Notation des utilisateurs
+
+## 17. Évolutions issues des captures de référence
+
+Source : `docs/references/ref-01` à `ref-10` (non versionnées : vraies adresses et noms). On reprend les fonctionnalités, pas le design, le nom, les textes ni les icônes. Les règles des sections précédentes restent valables sauf précision ici.
+
+### A. Adresses nommées (phase 4 ; ref-01, 02, 03)
+- Liste d'adresses personnelles (max 10) au lieu de domicile/travail/école.
+- Chaque adresse : nom libre (« Maison », « Entreprise »…), icône au choix (au minimum maison, mallette, étoile), adresse par autocomplétion Géoplateforme, petite carte avec repère. Création, modification, suppression dans Compte > Mes adresses.
+- Adresse « CESI » (étoile) créée par défaut avec le campus de l'utilisateur, à confirmer, modifiable.
+- Chiffrement inchangé : texte et coordonnées chiffrés côté serveur ; nom et icône en clair. Seul le propriétaire voit ses adresses.
+- Suppression d'une adresse utilisée par un trajet : avertir, proposer de réaffecter ou supprimer les trajets liés.
+
+### B. Un trajet, plusieurs jours (phase 5 ; ref-04, 05, 06)
+- **Commute** (trajet habituel) : départ ⟷ arrivée parmi les adresses nommées, rôle (conducteur + places, ou passager), marche max (passager), itinéraire (conducteur). Plusieurs commutes possibles, chacun avec son rôle.
+- **Slot** : (commute, jour, sens Aller/Retour) avec ancre horaire (départ OU arrivée), souplesse avant/après, dates facultatives. Aller = matin, Retour = soir (sens inverse). Slots indépendants par jour ; occurrences datées générées comme avant.
+- Écran résumé du commute : trajet, horaires de la semaine, itinéraires aller/retour.
+- Édition d'un horaire = feuille modale : sélecteur d'heure, curseur à deux poignées pour la souplesse (0 à 60 min de chaque côté), puces L M M J V S D « appliquer aussi à ces jours » + raccourci « Lun–Ven ». Valider crée les jours manquants et écrase les autres après confirmation. Chaque jour reste modifiable seul. La création utilise la même feuille (une semaine en un écran).
+- Validation « trop court » (§8.1) par slot.
+
+### C. Itinéraire choisi par le conducteur (phase 5 ; ref-07)
+- Par sens : « Tous les itinéraires » (défaut), « Itinéraire 1 », « 2 »… ; libellé « Via <route principale> » si extractible. Carte des alternatives, sélection en surbrillance.
+- OpenRouteService : vérifier support, limites et coût en quota des alternatives. Calcul une fois à l'enregistrement, géométries stockées, recalcul seulement si le trajet change. Repli sur un seul itinéraire. Tout dans `src/lib/geo/`.
+- Algorithme : « Tous » = prise en charge sur n'importe quelle alternative ; un itinéraire choisi = seul utilisé (pré-filtre, rendez-vous, détour). Choix par défaut pour tout le commute.
+
+### D. Détail d'une proposition et demande (phases 6 et 7 ; ref-08, 09, 10)
+- Page de détail depuis une carte de proposition : carte, bouton « Demander » (§7 inchangé), récap (rôle, pseudo de l'autre, nombre de trajets en commun, places occupées/total de l'occurrence), accès à la messagerie.
+- « Détails des rendez-vous » : rendez-vous (prise en charge), dépose, frise Départ → Rendez-vous → Arrivée avec heures calculées et « horaires estimés, hors trafic ». Carte plein écran « Détails du trajet » avec étapes.
+- Carte : pointillés = conducteur seul, trait plein d'une autre couleur = tronçon partagé ; marqueurs Départ, Rendez-vous, Dépose, Arrivée.
+- Point de dépose proposé par l'algorithme, symétrique du rendez-vous (même marche max), non modifiable.
+- **Confidentialité (prime sur les captures)** : le propriétaire voit son itinéraire complet ; l'autre ne voit que rendez-vous, dépose et tronçon partagé, jamais départ, arrivée ni reste de l'itinéraire.
+- Pas d'édition du rendez-vous, de la dépose ni de l'heure.
+
+### Non repris
+Gains/argent, appel téléphonique, notes de satisfaction, « Masquer », mode vacances, niveaux/badges, onglets Expériences/Challenges/Favoris, invitation d'amis, photo de profil.

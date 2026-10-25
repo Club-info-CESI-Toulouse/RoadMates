@@ -76,10 +76,10 @@ Chaque phase est livrable et testable seule. Cocher en fin de phase (section Ava
 1. **Fondations** (§2, 3, 4) : projet Next.js, Vercel, Supabase (setup guidé), conventions, thèmes + couleurs CESI, modèle de données (établissement, groupe, trajet récurrent / occurrence).
 2. **Authentification et profil** (§9, 14) : inscription @viacesi.fr, code email, connexion, mot de passe oublié, profil, rattachement au groupe, chiffrement des adresses.
 3. **Navigation et PWA** (§5, 3) : menu 4 pages (Accueil, Messagerie, Mes trajets, Compte) en coquilles, adaptation PC, PWA installable, guide d'installation iOS.
-4. **Adresses et carte** (§11, 5.4) : adresses domicile/travail/école (CESI par défaut), module `geo`, carte, autocomplétion, pose de point.
-5. **Mes trajets** (§6, 8.1) : CRUD trajets récurrents, rôle, places, jours, horaires, dates facultatives, marche max, souplesse avant/après, validation « trop court ».
-6. **Algorithme et Accueil** (§8, 5.1, 11) : pré-filtre, itinéraires + cache, score, point de rendez-vous proposé, horaires proposés, détour/marche affichés, page Accueil (bandeau des jours, matin/soir, cartes), pop-up d'aide, avertissement horaires. Capture de référence : `docs/reference/` (à ouvrir seulement pour cette phase).
-7. **Demandes** (§7) : envoi, acceptation, annulation, refus = annulée, règle des 5 min, limite 10, annulation auto avec notification, gestion des places.
+4. **Adresses et carte** (§11, 5.4) (+ §17 A) : adresses domicile/travail/école (CESI par défaut), module `geo`, carte, autocomplétion, pose de point.
+5. **Mes trajets** (§6, 8.1) (+ §17 B, C) : CRUD trajets récurrents, rôle, places, jours, horaires, dates facultatives, marche max, souplesse avant/après, validation « trop court ».
+6. **Algorithme et Accueil** (§8, 5.1, 11) (+ §17 D) : pré-filtre, itinéraires + cache, score, point de rendez-vous proposé, horaires proposés, détour/marche affichés, page Accueil (bandeau des jours, matin/soir, cartes), pop-up d'aide, avertissement horaires. Captures de référence : `docs/references/` (à ouvrir seulement pour cette phase).
+7. **Demandes** (§7) (+ §17 D) : envoi, acceptation, annulation, refus = annulée, règle des 5 min, limite 10, annulation auto avec notification, gestion des places.
 8. **Messagerie** (§5.2) : conversations temps réel, liste, non-lus.
 9. **Notifications** (§10) : push PWA + repli email, préférences.
 10. **Compte et statistiques** (§5.4) : stats, paramètres, thème, suppression de compte.
