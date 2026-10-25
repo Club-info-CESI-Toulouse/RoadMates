@@ -47,3 +47,6 @@ supabase/.branches
 
 # reference screenshots (real addresses and names)
 docs/references/
+
+# maplibre worker copied at build (scripts/copy-maplibre-worker.mjs)
+public/maplibre/

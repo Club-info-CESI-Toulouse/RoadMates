@@ -3,6 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef } from "react";
+import { loadMapLibre } from "@/lib/geo/maplibre";
 import { MAP_STYLES } from "@/lib/geo/map-styles";
 import type { LatLon } from "@/lib/geo/types";
 
@@ -44,7 +45,7 @@ export function TripDetailMap({
     let map: MapLibreMap | undefined;
     let observer: MutationObserver | undefined;
 
-    import("maplibre-gl").then(({ Map, Marker, Popup, LngLatBounds }) => {
+    loadMapLibre().then(({ Map, Marker, Popup, LngLatBounds }) => {
       if (cancelled || !container.current) return;
       const { shared, driverOnly, markers } = data.current;
       const points: [number, number][] = [...markers.map((m) => [m.lon, m.lat] as [number, number]), ...(shared ?? []), ...driverOnly.flat()];

@@ -3,6 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef } from "react";
+import { loadMapLibre } from "@/lib/geo/maplibre";
 import { MAP_STYLES } from "@/lib/geo/map-styles";
 
 type Line = { idx: number; geometry: [number, number][] };
@@ -38,7 +39,7 @@ export function RoutesMap({ lines, selected, className }: { lines: Line[]; selec
     let cancelled = false;
     let observer: MutationObserver | undefined;
 
-    import("maplibre-gl").then(({ Map, Marker, LngLatBounds }) => {
+    loadMapLibre().then(({ Map, Marker, LngLatBounds }) => {
       if (cancelled || !container.current || state.current.lines.length === 0) return;
       const all = state.current.lines.flatMap((l) => l.geometry);
       const bounds = all.reduce((b, p) => b.extend(p), new LngLatBounds(all[0], all[0]));
