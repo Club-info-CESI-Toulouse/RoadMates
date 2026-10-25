@@ -6,7 +6,7 @@ import { z } from "zod";
 import { PageShell } from "@/components/page-shell";
 import { listMyAddressOptions } from "@/lib/addresses/server";
 import { getCurrentProfile } from "@/lib/auth/user";
-import { getMyCommute } from "@/lib/commutes/server";
+import { ensureCommuteRoutes, getMyCommute } from "@/lib/commutes/server";
 import { CommuteDetail } from "../commute-detail";
 
 export const metadata: Metadata = { title: "Mon trajet · RoadMates" };
@@ -32,7 +32,9 @@ async function Commute({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const profile = await getCurrentProfile();
-  const [commute, addresses] = await Promise.all([getMyCommute(profile.id, id), listMyAddressOptions(profile.id)]);
-  if (!commute) notFound();
+  const [found, addresses] = await Promise.all([getMyCommute(profile.id, id), listMyAddressOptions(profile.id)]);
+  if (!found) notFound();
+  // Commutes from before route choice get their alternatives on first view.
+  const commute = (await ensureCommuteRoutes(profile.id, found)) ? ((await getMyCommute(profile.id, id)) ?? found) : found;
   return <CommuteDetail commute={commute} addresses={addresses} />;
 }

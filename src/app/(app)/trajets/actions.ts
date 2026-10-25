@@ -17,6 +17,7 @@ import {
   saveMyCommute,
   saveMySlots,
   setMyCommuteActive,
+  setMyRouteChoice,
 } from "@/lib/commutes/server";
 
 export type FormResult = { ok: true; id?: string } | { ok: false; error?: string; fieldErrors?: Record<string, string> };
@@ -108,4 +109,16 @@ export async function toggleCommuteAction(id: string, isActive: boolean) {
   if (!userId || !idSchema.safeParse(id).success) return;
   await setMyCommuteActive(userId, id, isActive);
   refresh();
+}
+
+export async function setRouteChoiceAction(commuteId: string, direction: "morning" | "evening", idx: number | null): Promise<FormResult> {
+  const userId = await getUserId();
+  if (!userId) return SIGNED_OUT;
+  const parsedIdx = z.int().min(0).max(4).nullable().safeParse(idx);
+  if (!idSchema.safeParse(commuteId).success || !directionSchema.safeParse(direction).success || !parsedIdx.success)
+    return { ok: false, error: "Itinéraire introuvable" };
+  if (!(await setMyRouteChoice(userId, commuteId, direction, parsedIdx.data)))
+    return { ok: false, error: "Impossible d'enregistrer, réessaie" };
+  refresh();
+  return { ok: true };
 }
