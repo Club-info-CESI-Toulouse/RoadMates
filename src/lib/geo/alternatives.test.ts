@@ -3,7 +3,18 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("./routing", () => ({ getRoute: vi.fn(), RoutingUnavailableError: class extends Error {} }));
 
-const { labelRoutes, mainRoad } = await import("./alternatives");
+const { dedupeRoutes, labelRoutes, mainRoad } = await import("./alternatives");
+
+describe("dedupeRoutes", () => {
+  it("drops alternatives that are the same road in practice", () => {
+    const routes = [
+      { distanceM: 11300, durationS: 1320 },
+      { distanceM: 9600, durationS: 1380 },
+      { distanceM: 9640, durationS: 1395 },
+    ];
+    expect(dedupeRoutes(routes)).toEqual(routes.slice(0, 2));
+  });
+});
 
 describe("route labels", () => {
   it("keeps the road number of the longest named stretch", () => {

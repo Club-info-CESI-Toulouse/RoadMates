@@ -2,7 +2,7 @@ import "server-only";
 import type { AddressIcon } from "@/lib/addresses/constants";
 import { listMyAddresses } from "@/lib/addresses/server";
 import { decrypt, encrypt } from "@/lib/crypto/address";
-import { getRoute, getRouteAlternatives, RoutingUnavailableError } from "@/lib/geo";
+import { dedupeRoutes, getRoute, getRouteAlternatives, RoutingUnavailableError } from "@/lib/geo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -156,9 +156,14 @@ export async function computeCommuteRoutes(userId: string, commuteId: string) {
   );
 }
 
-/** Commutes whose routes are missing (created before §17 C) get them computed once. */
+/**
+ * Routes missing (commute from before §17 C) or holding near-duplicate alternatives
+ * (stored before deduplication) are computed again.
+ */
 export async function ensureCommuteRoutes(userId: string, commute: CommuteView) {
-  if (commute.role !== "driver" || (commute.routes.morning.length && commute.routes.evening.length)) return false;
+  if (commute.role !== "driver") return false;
+  const healthy = (routes: RouteOption[]) => routes.length > 0 && dedupeRoutes(routes).length === routes.length;
+  if (healthy(commute.routes.morning) && healthy(commute.routes.evening)) return false;
   await computeCommuteRoutes(userId, commute.id);
   return true;
 }
