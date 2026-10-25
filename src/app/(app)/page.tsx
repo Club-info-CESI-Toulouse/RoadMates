@@ -4,7 +4,6 @@ import { z } from "zod";
 import { InstallPrompt } from "@/components/install-prompt";
 import { NotificationBell } from "@/components/notification-bell";
 import { PageShell } from "@/components/page-shell";
-import { ADDRESS_LABELS } from "@/lib/addresses/constants";
 import { getCurrentProfile } from "@/lib/auth/user";
 import { addDays, isoWeekday, localDate, weekdayShort } from "@/lib/dates";
 import { getProposals, type TripSection } from "@/lib/matching/server";
@@ -135,7 +134,7 @@ function Section({ section, date }: { section: TripSection; date: string }) {
     <div className="flex flex-col gap-3">
       <div className="rounded-3xl bg-card p-5 shadow-sm">
         <p className="font-semibold">
-          {ADDRESS_LABELS[trip.originKind]} → {ADDRESS_LABELS[trip.destinationKind]}
+          {trip.originName} → {trip.destinationName}
         </p>
         <p className="text-sm text-muted">
           {iAmDriver ? "Conducteur" : "Passager"} · {times.join(" · ")} (−{trip.flexBeforeMin}/+{trip.flexAfterMin} min)

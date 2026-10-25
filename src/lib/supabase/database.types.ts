@@ -16,25 +16,34 @@ export type Database = {
     Tables: {
       addresses: {
         Row: {
+          confirmed: boolean
           created_at: string
+          icon: Database["public"]["Enums"]["address_icon"]
           id: string
           kind: Database["public"]["Enums"]["address_kind"]
+          name: string
           payload_encrypted: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          confirmed?: boolean
           created_at?: string
+          icon?: Database["public"]["Enums"]["address_icon"]
           id?: string
-          kind: Database["public"]["Enums"]["address_kind"]
+          kind?: Database["public"]["Enums"]["address_kind"]
+          name: string
           payload_encrypted: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          confirmed?: boolean
           created_at?: string
+          icon?: Database["public"]["Enums"]["address_icon"]
           id?: string
           kind?: Database["public"]["Enums"]["address_kind"]
+          name?: string
           payload_encrypted?: string
           updated_at?: string
           user_id?: string
@@ -266,6 +275,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          default_address_seeded: boolean
           display_name: string
           email_enabled: boolean
           group_id: string | null
@@ -275,6 +285,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          default_address_seeded?: boolean
           display_name: string
           email_enabled?: boolean
           group_id?: string | null
@@ -284,6 +295,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          default_address_seeded?: boolean
           display_name?: string
           email_enabled?: boolean
           group_id?: string | null
@@ -727,6 +739,7 @@ export type Database = {
       visible_group_ids: { Args: never; Returns: string[] }
     }
     Enums: {
+      address_icon: "home" | "work" | "star"
       address_kind: "home" | "work" | "school" | "other"
       cancel_reason:
         | "declined"
@@ -867,6 +880,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      address_icon: ["home", "work", "star"],
       address_kind: ["home", "work", "school", "other"],
       cancel_reason: [
         "declined",

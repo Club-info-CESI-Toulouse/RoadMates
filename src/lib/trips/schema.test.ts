@@ -5,8 +5,8 @@ const base = {
   role: "driver" as const,
   seats: 3,
   slot: "morning" as const,
-  originKind: "home" as const,
-  destinationKind: "school" as const,
+  originAddressId: "11111111-1111-4111-8111-111111111111",
+  destinationAddressId: "22222222-2222-4222-8222-222222222222",
   weekdays: [1, 2, 3],
   departureTime: "07:30",
   arrivalTime: null,
@@ -38,7 +38,7 @@ describe("tripSchema", () => {
   });
 
   it("rejects identical origin and destination", () => {
-    expect(tripSchema.safeParse({ ...base, destinationKind: "home" }).success).toBe(false);
+    expect(tripSchema.safeParse({ ...base, destinationAddressId: base.originAddressId }).success).toBe(false);
   });
 
   it("rejects an inverted validity period", () => {

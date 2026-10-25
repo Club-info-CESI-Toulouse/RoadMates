@@ -1,6 +1,5 @@
 import "server-only";
 import { decrypt } from "@/lib/crypto/address";
-import type { AddressKind } from "@/lib/addresses/constants";
 import { localMinutes, isoWeekday, zonedInstant } from "@/lib/dates";
 import { getRoute, reverseGeocode, RoutingUnavailableError, type LatLon, type Place } from "@/lib/geo";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -18,8 +17,9 @@ export type LoadedTrip = MatchTrip & {
   slot: Slot;
   seats: number | null;
   durationS: number;
-  originKind: AddressKind;
-  destinationKind: AddressKind;
+  /** Address names: only meaningful to the trip owner. */
+  originName: string;
+  destinationName: string;
 };
 
 export type ProposalRequest = {
@@ -98,9 +98,9 @@ export async function loadTrips(date: string, filter?: { ids?: string[] }): Prom
   const addressIds = [...new Set(trips.flatMap((t) => [t.origin_address_id, t.destination_address_id]))];
   const { data: addresses } = await createAdminClient()
     .from("addresses")
-    .select("id, kind, payload_encrypted")
+    .select("id, name, payload_encrypted")
     .in("id", addressIds);
-  const byId = new Map((addresses ?? []).map((a) => [a.id, { kind: a.kind as AddressKind, place: decrypt<Place>(a.payload_encrypted) }]));
+  const byId = new Map((addresses ?? []).map((a) => [a.id, { name: a.name, place: decrypt<Place>(a.payload_encrypted) }]));
 
   return trips.flatMap((t) => {
     const origin = byId.get(t.origin_address_id);
@@ -116,8 +116,8 @@ export async function loadTrips(date: string, filter?: { ids?: string[] }): Prom
         durationS: t.estimated_duration_s!,
         origin: { lat: origin.place.lat, lon: origin.place.lon },
         destination: { lat: destination.place.lat, lon: destination.place.lon },
-        originKind: origin.kind,
-        destinationKind: destination.kind,
+        originName: origin.name,
+        destinationName: destination.name,
         departureMin: t.departure_time ? toMinutes(t.departure_time) : null,
         arrivalMin: t.arrival_time ? toMinutes(t.arrival_time) : null,
         flexBeforeMin: t.flex_before_min,
