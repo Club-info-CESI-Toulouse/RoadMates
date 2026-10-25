@@ -3,6 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef } from "react";
+import { loadMapLibre } from "@/lib/geo/maplibre";
 import { MAP_STYLES, PLACE_ZOOM } from "@/lib/geo/map-styles";
 import type { LatLon } from "@/lib/geo/types";
 
@@ -21,7 +22,7 @@ export function PointsMap({ points, className }: { points: MapPoint[]; className
     let map: MapLibreMap | undefined;
     let observer: MutationObserver | undefined;
 
-    import("maplibre-gl").then(({ Map, Marker, Popup, LngLatBounds }) => {
+    loadMapLibre().then(({ Map, Marker, Popup, LngLatBounds }) => {
       if (cancelled || !container.current) return;
       const pts = pointsRef.current;
       map = new Map({
