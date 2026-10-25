@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import { FormMessage } from "@/components/form";
-import { ADDRESS_KINDS, ADDRESS_LABELS, type AddressKind } from "@/lib/addresses/constants";
+import type { AddressOption } from "@/lib/addresses/constants";
 import {
   DRIVER_SEATS,
   FLEX_AFTER_MIN,
@@ -18,20 +18,21 @@ import { saveTrip } from "./actions";
 type Props = {
   tripId?: string;
   initial?: Trip;
-  /** Address kinds the user has filled in (school counts when the campus is the default). */
-  available: AddressKind[];
+  addresses: AddressOption[];
 };
 
-const DEFAULT_ROUTE = {
-  morning: { originKind: "home", destinationKind: "school" },
-  evening: { originKind: "school", destinationKind: "home" },
-} as const;
+/** Morning default: first "home" address → first "star" (school) address; evening reversed. */
+function defaultRoute(addresses: AddressOption[], slot: Trip["slot"]) {
+  const home = addresses.find((a) => a.icon === "home") ?? addresses[0];
+  const school = addresses.find((a) => a.icon === "star" && a !== home) ?? addresses.find((a) => a !== home);
+  const [from, to] = slot === "morning" ? [home, school] : [school, home];
+  return { originAddressId: from?.id ?? "", destinationAddressId: to?.id ?? "" };
+}
 
-const NEW_TRIP: Trip = {
+const NEW_TRIP: Omit<Trip, "originAddressId" | "destinationAddressId"> = {
   role: "passenger",
   seats: null,
   slot: "morning",
-  ...DEFAULT_ROUTE.morning,
   weekdays: [1, 2, 3, 4, 5],
   departureTime: null,
   arrivalTime: null,
@@ -118,9 +119,9 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 const inputClass =
   "rounded-xl border border-border bg-surface px-3 py-2.5 text-base outline-none focus:border-foreground aria-invalid:border-red-500";
 
-export function TripForm({ tripId, initial, available }: Props) {
+export function TripForm({ tripId, initial, addresses }: Props) {
   const router = useRouter();
-  const [trip, setTrip] = useState<Trip>(initial ?? NEW_TRIP);
+  const [trip, setTrip] = useState<Trip>(initial ?? { ...NEW_TRIP, ...defaultRoute(addresses, "morning") });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
@@ -129,10 +130,10 @@ export function TripForm({ tripId, initial, available }: Props) {
 
   function changeSlot(slot: Trip["slot"]) {
     setTrip((t) => {
+      const current = defaultRoute(addresses, t.slot);
       const wasDefault =
-        t.originKind === DEFAULT_ROUTE[t.slot].originKind &&
-        t.destinationKind === DEFAULT_ROUTE[t.slot].destinationKind;
-      return { ...t, slot, ...(wasDefault ? DEFAULT_ROUTE[slot] : {}) };
+        t.originAddressId === current.originAddressId && t.destinationAddressId === current.destinationAddressId;
+      return { ...t, slot, ...(wasDefault ? defaultRoute(addresses, slot) : {}) };
     });
   }
 
@@ -163,19 +164,19 @@ export function TripForm({ tripId, initial, available }: Props) {
       <span className="text-xs font-normal text-red-600 dark:text-red-400">{errors[key]}</span>
     ) : null;
 
-  const addressSelect = (key: "originKind" | "destinationKind", label: string) => (
+  const addressSelect = (key: "originAddressId" | "destinationAddressId", label: string) => (
     <label className="flex flex-col gap-1 text-sm font-medium">
       {label}
       <select
         value={trip[key]}
-        onChange={(e) => set(key, e.target.value as AddressKind)}
+        onChange={(e) => set(key, e.target.value)}
         aria-invalid={!!errors[key]}
         className={inputClass}
       >
-        {ADDRESS_KINDS.map((kind) => (
-          <option key={kind} value={kind}>
-            {ADDRESS_LABELS[kind]}
-            {available.includes(kind) ? "" : " (à renseigner)"}
+        {!trip[key] && <option value="">Choisir…</option>}
+        {addresses.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.name}
           </option>
         ))}
       </select>
@@ -212,13 +213,13 @@ export function TripForm({ tripId, initial, available }: Props) {
         )}
         <Segmented label="Créneau" value={trip.slot} options={SLOT_LABELS} onChange={changeSlot} />
         <div className="grid grid-cols-2 gap-3">
-          {addressSelect("originKind", "Départ")}
-          {addressSelect("destinationKind", "Arrivée")}
+          {addressSelect("originAddressId", "Départ")}
+          {addressSelect("destinationAddressId", "Arrivée")}
         </div>
-        {available.length < 2 && (
+        {addresses.length < 2 && (
           <p className="text-xs text-muted">
             <Link href="/compte/adresses" className="underline">
-              Renseigne tes adresses
+              Ajoute au moins deux adresses
             </Link>{" "}
             pour pouvoir enregistrer un trajet.
           </p>

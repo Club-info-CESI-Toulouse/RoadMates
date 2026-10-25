@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useTransition } from "react";
-import { ADDRESS_LABELS } from "@/lib/addresses/constants";
 import { formatDate, formatWeekdays, ROLE_LABELS, SLOT_LABELS } from "@/lib/trips/labels";
 import type { TripView } from "@/lib/trips/server";
 import { formatDuration } from "@/lib/trips/times";
@@ -53,7 +52,7 @@ export function TripCard({ trip }: { trip: TripView }) {
       </div>
 
       <p className="text-sm">
-        {ADDRESS_LABELS[trip.originKind]} → {ADDRESS_LABELS[trip.destinationKind]}
+        {trip.origin.name} → {trip.destination.name}
       </p>
       <p className="text-sm text-muted">
         {formatWeekdays(trip.weekdays)}

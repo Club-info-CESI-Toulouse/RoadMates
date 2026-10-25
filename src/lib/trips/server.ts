@@ -1,6 +1,6 @@
 import "server-only";
-import { ADDRESS_LABELS, type AddressKind } from "@/lib/addresses/constants";
-import { ensureAddressRow, getMyAddresses } from "@/lib/addresses/server";
+import type { AddressIcon } from "@/lib/addresses/constants";
+import { listMyAddresses } from "@/lib/addresses/server";
 import { getRoute, RoutingUnavailableError, type LatLon } from "@/lib/geo";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
@@ -11,6 +11,8 @@ type TripRow = Database["public"]["Tables"]["trips"]["Row"];
 
 export type TripView = Trip & {
   id: string;
+  origin: { name: string; icon: AddressIcon };
+  destination: { name: string; icon: AddressIcon };
   durationMin: number | null;
   /** Departure/arrival with the missing one computed from the duration. */
   shownDeparture: string | null;
@@ -21,7 +23,7 @@ export type SaveResult = { ok: true; id: string } | { ok: false; error: string; 
 
 const hhmm = (t: string | null) => (t ? t.slice(0, 5) : null);
 
-function toView(row: TripRow, kinds: Map<string, AddressKind>): TripView {
+function toView(row: TripRow, names: Map<string, { name: string; icon: AddressIcon }>): TripView {
   const departureTime = hhmm(row.departure_time);
   const arrivalTime = hhmm(row.arrival_time);
   const resolved = row.estimated_duration_s
@@ -32,8 +34,10 @@ function toView(row: TripRow, kinds: Map<string, AddressKind>): TripView {
     role: row.role,
     seats: row.seats,
     slot: row.slot,
-    originKind: kinds.get(row.origin_address_id) ?? "home",
-    destinationKind: kinds.get(row.destination_address_id) ?? "school",
+    originAddressId: row.origin_address_id,
+    destinationAddressId: row.destination_address_id,
+    origin: names.get(row.origin_address_id) ?? UNKNOWN,
+    destination: names.get(row.destination_address_id) ?? UNKNOWN,
     weekdays: [...row.weekdays].sort(),
     departureTime,
     arrivalTime,
@@ -49,33 +53,35 @@ function toView(row: TripRow, kinds: Map<string, AddressKind>): TripView {
   };
 }
 
-async function addressKinds(userId: string) {
+const UNKNOWN = { name: "?", icon: "star" as const };
+
+async function addressNames(userId: string) {
   const supabase = await createClient();
-  const { data } = await supabase.from("addresses").select("id, kind").eq("user_id", userId);
-  return new Map((data ?? []).map((a) => [a.id, a.kind as AddressKind]));
+  const { data } = await supabase.from("addresses").select("id, name, icon").eq("user_id", userId);
+  return new Map((data ?? []).map((a) => [a.id, { name: a.name, icon: a.icon }]));
 }
 
 export async function listMyTrips(userId: string): Promise<TripView[]> {
   const supabase = await createClient();
-  const [{ data }, kinds] = await Promise.all([
+  const [{ data }, names] = await Promise.all([
     supabase
       .from("trips")
       .select("*")
       .eq("owner_id", userId)
       .order("slot")
       .order("created_at"),
-    addressKinds(userId),
+    addressNames(userId),
   ]);
-  return (data ?? []).map((row) => toView(row, kinds));
+  return (data ?? []).map((row) => toView(row, names));
 }
 
 export async function getMyTrip(userId: string, id: string): Promise<TripView | null> {
   const supabase = await createClient();
-  const [{ data }, kinds] = await Promise.all([
+  const [{ data }, names] = await Promise.all([
     supabase.from("trips").select("*").eq("owner_id", userId).eq("id", id).maybeSingle(),
-    addressKinds(userId),
+    addressNames(userId),
   ]);
-  return data ? toView(data, kinds) : null;
+  return data ? toView(data, names) : null;
 }
 
 async function drivingDuration(from: LatLon, to: LatLon) {
@@ -84,13 +90,11 @@ async function drivingDuration(from: LatLon, to: LatLon) {
 
 export async function saveMyTrip(userId: string, trip: Trip, id?: string): Promise<SaveResult> {
   const supabase = await createClient();
-  const addresses = await getMyAddresses(userId);
-  const origin = addresses[trip.originKind];
-  const destination = addresses[trip.destinationKind];
-  if (!origin)
-    return { ok: false, field: "originKind", error: `Renseigne d'abord ton adresse « ${ADDRESS_LABELS[trip.originKind]} » dans Compte` };
-  if (!destination)
-    return { ok: false, field: "destinationKind", error: `Renseigne d'abord ton adresse « ${ADDRESS_LABELS[trip.destinationKind]} » dans Compte` };
+  const addresses = await listMyAddresses(userId);
+  const origin = addresses.find((a) => a.id === trip.originAddressId);
+  const destination = addresses.find((a) => a.id === trip.destinationAddressId);
+  if (!origin) return { ok: false, field: "originAddressId", error: "Adresse de départ introuvable" };
+  if (!destination) return { ok: false, field: "destinationAddressId", error: "Adresse d'arrivée introuvable" };
 
   let durationS: number;
   try {
@@ -113,12 +117,7 @@ export async function saveMyTrip(userId: string, trip: Trip, id?: string): Promi
     return { ok: false, field: "arrivalTime", error };
   }
 
-  const [originId, destinationId, { data: profile }] = await Promise.all([
-    ensureAddressRow(userId, origin),
-    ensureAddressRow(userId, destination),
-    supabase.from("profiles").select("group_id").eq("id", userId).single(),
-  ]);
-  if (!originId || !destinationId) return { ok: false, error: "Adresse introuvable, réessaie" };
+  const { data: profile } = await supabase.from("profiles").select("group_id").eq("id", userId).single();
   if (!profile?.group_id) return { ok: false, error: "Ton compte n'est rattaché à aucune classe" };
 
   const row = {
@@ -127,8 +126,8 @@ export async function saveMyTrip(userId: string, trip: Trip, id?: string): Promi
     role: trip.role,
     seats: trip.role === "driver" ? trip.seats : null,
     slot: trip.slot,
-    origin_address_id: originId,
-    destination_address_id: destinationId,
+    origin_address_id: origin.id,
+    destination_address_id: destination.id,
     weekdays: trip.weekdays,
     departure_time: trip.departureTime,
     arrival_time: trip.arrivalTime,
@@ -169,9 +168,9 @@ export async function refreshTripDurations(userId: string) {
   const supabase = await createClient();
   const [{ data: trips }, addresses] = await Promise.all([
     supabase.from("trips").select("id, origin_address_id, destination_address_id").eq("owner_id", userId),
-    getMyAddresses(userId),
+    listMyAddresses(userId),
   ]);
-  const byId = new Map(Object.values(addresses).flatMap((a) => (a?.id ? [[a.id, a] as const] : [])));
+  const byId = new Map(addresses.map((a) => [a.id, a]));
 
   await Promise.all(
     (trips ?? []).map(async (t) => {

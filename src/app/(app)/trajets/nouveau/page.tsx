@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageShell } from "@/components/page-shell";
 import { getCurrentProfile } from "@/lib/auth/user";
-import { availableKinds } from "../available-kinds";
+import { addressOptions } from "../address-options";
 import { TripForm } from "../trip-form";
 
 export const metadata: Metadata = { title: "Nouveau trajet · RoadMates" };
@@ -19,5 +19,5 @@ export default function NewTripPage() {
 
 async function NewTrip() {
   const profile = await getCurrentProfile();
-  return <TripForm available={await availableKinds(profile.id)} />;
+  return <TripForm addresses={await addressOptions(profile.id)} />;
 }
