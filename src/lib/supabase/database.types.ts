@@ -98,7 +98,36 @@ export type Database = {
           seats?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "commutes_destination_address_id_fkey"
+            columns: ["destination_address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commutes_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commutes_origin_address_id_fkey"
+            columns: ["origin_address_id"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commutes_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversations: {
         Row: {
@@ -663,6 +692,13 @@ export type Database = {
           weekdays?: number[]
         }
         Relationships: [
+          {
+            foreignKeyName: "trips_commute_id_fkey"
+            columns: ["commute_id"]
+            isOneToOne: false
+            referencedRelation: "commutes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "trips_destination_address_id_fkey"
             columns: ["destination_address_id"]
