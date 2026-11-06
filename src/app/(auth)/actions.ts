@@ -12,6 +12,7 @@ import {
   signInSchema,
   signUpSchema,
 } from "@/lib/auth/schema";
+import { listClassNames } from "@/lib/classes/server";
 import { createClient } from "@/lib/supabase/server";
 
 export type FormState = {
@@ -50,6 +51,8 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
   const values = read(formData, "email", "displayName", "className");
   if (!parsed.success) return fieldErrors(parsed.error, values);
   const { email, password, displayName, className } = parsed.data;
+  if (!(await listClassNames()).includes(className))
+    return { fieldErrors: { className: "Choisis une classe dans la liste" }, values };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({

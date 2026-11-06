@@ -1,8 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { Field, FormMessage, SubmitButton } from "@/components/form";
-import { CLASS_NAME_MAX_LENGTH } from "@/lib/auth/schema";
+import { FormMessage, SelectField, SubmitButton } from "@/components/form";
 import type { FormState } from "@/app/(auth)/actions";
 import { updateClass } from "./actions";
 
@@ -20,21 +19,15 @@ export function ClassForm({ className, classes }: { className: string | null; cl
       }}
       className="flex flex-col gap-3"
     >
-      <Field
+      <SelectField
         label="Classe"
         name="className"
         defaultValue={className ?? ""}
-        list="class-names"
-        autoComplete="off"
-        maxLength={CLASS_NAME_MAX_LENGTH}
+        options={classes}
+        placeholder={className ? undefined : "Choisis ta classe"}
         required
         error={state.fieldErrors?.className}
       />
-      <datalist id="class-names">
-        {classes.map((c) => (
-          <option key={c} value={c} />
-        ))}
-      </datalist>
       <FormMessage error={state.error} message={state.message} />
       <SubmitButton pending={pending}>Changer de classe</SubmitButton>
     </form>

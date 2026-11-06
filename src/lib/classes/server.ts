@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 
-/** Existing class names, offered as suggestions so classmates pick the same one. */
+/** Classes users can pick. They are created by hand in the database. */
 export async function listClassNames(): Promise<string[]> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("class_names");

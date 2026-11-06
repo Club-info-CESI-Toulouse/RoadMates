@@ -45,3 +45,16 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Hover feedback on every button and button-like link, only with a real pointer (PC). */
+@media (hover: hover) and (pointer: fine) {
+  button:not(:disabled),
+  a[class*="rounded-"] {
+    cursor: pointer;
+    transition: opacity 150ms;
+  }
+  button:not(:disabled):hover,
+  a[class*="rounded-"]:hover {
+    opacity: 0.75;
+  }
+}
