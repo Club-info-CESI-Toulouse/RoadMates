@@ -1,5 +1,5 @@
 import "server-only";
-import { localDate, localMinutes, zonedInstant } from "@/lib/dates";
+import { localMinutes, zonedInstant } from "@/lib/dates";
 import { loadTrips, matchPair, pointLabel } from "@/lib/matching/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -93,6 +93,7 @@ export type RequestView = {
   date: string;
   slot: "morning" | "evening";
   status: "pending" | "accepted" | "cancelled";
+  cancelReason: string | null;
   sentByMe: boolean;
   iAmDriver: boolean;
   otherId: string;
@@ -107,18 +108,23 @@ export type RequestView = {
   detourM: number;
 };
 
-/** The user's open requests and rides from today on, soonest first. */
-export async function listMyRequests(userId: string): Promise<RequestView[]> {
+const HISTORY_LOADED = 100;
+
+/**
+ * Open requests and rides to come (soonest first), and the history: past rides and
+ * cancelled or declined requests (most recent first).
+ */
+export async function listMyRequests(userId: string): Promise<{ upcoming: RequestView[]; history: RequestView[] }> {
   const supabase = await createClient();
   await supabase.rpc("expire_trip_requests");
   const { data } = await supabase
     .from("trip_requests")
     .select(
-      "id, date, slot, status, sender_id, driver_id, passenger_id, driver_departure_at, pickup_at, dropoff_at, pickup_label, dropoff_label, walk_min, detour_min, detour_m",
+      "id, date, slot, status, cancel_reason, sender_id, driver_id, passenger_id, driver_departure_at, pickup_at, dropoff_at, pickup_label, dropoff_label, walk_min, detour_min, detour_m",
     )
-    .gte("date", localDate())
-    .order("pickup_at");
-  const rows = (data ?? []).filter((r) => new Date(r.dropoff_at).getTime() > Date.now());
+    .order("pickup_at", { ascending: false })
+    .limit(HISTORY_LOADED);
+  const rows = data ?? [];
 
   const otherIds = [...new Set(rows.map((r) => (r.driver_id === userId ? r.passenger_id : r.driver_id)))];
   const { data: profiles } = otherIds.length
@@ -126,13 +132,14 @@ export async function listMyRequests(userId: string): Promise<RequestView[]> {
     : { data: [] };
   const names = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
 
-  return rows.map((r) => {
+  const views = rows.map((r): RequestView => {
     const otherId = r.driver_id === userId ? r.passenger_id : r.driver_id;
     return {
       id: r.id,
       date: r.date,
       slot: r.slot,
       status: r.status,
+      cancelReason: r.cancel_reason,
       sentByMe: r.sender_id === userId,
       iAmDriver: r.driver_id === userId,
       otherId,
@@ -147,4 +154,7 @@ export async function listMyRequests(userId: string): Promise<RequestView[]> {
       detourM: r.detour_m,
     };
   });
+  const now = Date.now();
+  const isOpen = (r: RequestView) => r.status !== "cancelled" && new Date(r.dropoffAt).getTime() > now;
+  return { upcoming: views.filter(isOpen).reverse(), history: views.filter((r) => !isOpen(r)) };
 }

@@ -7,7 +7,8 @@ import { AddressPin } from "@/components/address-pin";
 import { DIRECTION_LABELS } from "@/lib/commutes/schema";
 import { listMyCommutes, type CommuteView } from "@/lib/commutes/server";
 import { ROLE_LABELS, WEEKDAYS } from "@/lib/trips/labels";
-import { MyRequests } from "./my-requests";
+import { listMyRequests } from "@/lib/requests/server";
+import { MyRequests, RequestHistory } from "./my-requests";
 
 export const metadata: Metadata = { title: "Mes trajets · RoadMates" };
 
@@ -34,24 +35,25 @@ export default function TripsPage() {
 async function Trips() {
   const profile = await getCurrentProfile();
   const trips = await listMyCommutes(profile.id);
-  const requests = <MyRequests userId={profile.id} />;
-  if (trips.length === 0)
-    return (
-      <p className="text-muted">
-        Tu n&apos;as pas encore de trajet. Ajoute ceux que tu fais chaque semaine, matin et soir.
-      </p>
-    );
+  const { upcoming, history } = await listMyRequests(profile.id);
   return (
     <>
-      {requests}
-      <section className="flex flex-col gap-3">
-        <h2 className="text-lg font-bold">Trajets habituels</h2>
-        <ul className="flex flex-col gap-3">
-          {trips.map((commute) => (
-            <CommuteCard key={commute.id} commute={commute} />
-          ))}
-        </ul>
-      </section>
+      <MyRequests requests={upcoming} />
+      {trips.length === 0 ? (
+        <p className="text-muted">
+          Tu n&apos;as pas encore de trajet. Ajoute ceux que tu fais chaque semaine, matin et soir.
+        </p>
+      ) : (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-lg font-bold">Trajets habituels</h2>
+          <ul className="flex flex-col gap-3">
+            {trips.map((commute) => (
+              <CommuteCard key={commute.id} commute={commute} />
+            ))}
+          </ul>
+        </section>
+      )}
+      <RequestHistory requests={history} />
     </>
   );
 }
