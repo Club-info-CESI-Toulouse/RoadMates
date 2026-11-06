@@ -90,7 +90,7 @@ Après la phase 11 : préparation Partie B (plusieurs classes, toute l'école, m
 ## Avancement (mettre à jour en fin de phase, une ligne)
 - [x] 1 · [x] 2 · [x] 3 · [x] 4 · [x] 5 · [x] 6 · [x] 7 · [x] 8 · [x] 9 · [x] 10 · [x] 11 (→ désormais branches + PR)
 - Notes de reprise (3 lignes max) :
-  - Supabase ref `rsvxhhpkbpiupmgfavud`, prod https://roadmates.vercel.app. Auth : trigger @viacesi.fr + profil auto (classe unique), codes 6 chiffres (5 essais, table `verification_attempts`), chiffrement `src/lib/crypto/address.ts`.
+  - Supabase ref `rsvxhhpkbpiupmgfavud`, prod https://roadmates.vercel.app. Auth : trigger @viacesi.fr + profil auto (classe choisie dans une liste ; classes créées à la main en base), codes 6 chiffres (5 essais, table `verification_attempts`), chiffrement `src/lib/crypto/address.ts`.
   - Phases 3-4 : SW natif `public/sw.js` (push à ajouter phase 9), module `src/lib/geo` (IGN ; routage ORS + cache chiffré `route_cache` ; **clé `ORS_API_KEY` requise** pour enregistrer un trajet). École par défaut : campus CESI Labège (`establishments`).
   - Phases 6-8 : algo pur `src/lib/matching/match.ts` (détour via waypoints ORS si marche > max), demandes = fonctions SQL `*_trip_request` + notifications en base (trigger, à pousser en phase 9), messagerie realtime (`authorizeRealtime` requis).
   - Phases 9-11 : notification insérée → trigger pg_net → `/api/notifications/dispatch` (secret Vault `notify_url`/`notify_secret` = `NOTIFY_SECRET`) → push web-push, sinon email Resend.

@@ -1,6 +1,6 @@
 "use client";
 
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
 
 type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
@@ -23,6 +23,41 @@ export function Field({ label, name, error, className, ...props }: FieldProps) {
         className={`${inputClass} ${className ?? ""}`}
         {...props}
       />
+      {error && (
+        <span id={errorId} className="text-xs font-normal text-red-600 dark:text-red-400">
+          {error}
+        </span>
+      )}
+    </label>
+  );
+}
+
+export function SelectField({
+  label,
+  name,
+  error,
+  options,
+  placeholder,
+  ...props
+}: SelectHTMLAttributes<HTMLSelectElement> & {
+  label: string;
+  name: string;
+  error?: string;
+  options: string[];
+  placeholder?: string;
+}) {
+  const errorId = error ? `${name}-error` : undefined;
+  return (
+    <label className="flex flex-col gap-1 text-sm font-medium">
+      {label}
+      <select name={name} aria-invalid={!!error} aria-describedby={errorId} className={inputClass} {...props}>
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
       {error && (
         <span id={errorId} className="text-xs font-normal text-red-600 dark:text-red-400">
           {error}

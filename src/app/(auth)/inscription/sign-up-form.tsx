@@ -1,10 +1,9 @@
 "use client";
 
 import { useActionState } from "react";
-import { Field, FormMessage, SubmitButton } from "@/components/form";
+import { Field, FormMessage, SelectField, SubmitButton } from "@/components/form";
 import {
   ALLOWED_EMAIL_DOMAIN,
-  CLASS_NAME_MAX_LENGTH,
   DISPLAY_NAME_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
 } from "@/lib/auth/schema";
@@ -38,22 +37,16 @@ export function SignUpForm({ classes }: { classes: string[] }) {
         required
         error={e.displayName}
       />
-      <Field
+      <SelectField
+        key={state.values?.className}
         label="Classe"
         name="className"
-        defaultValue={state.values?.className}
-        list="class-names"
-        autoComplete="off"
-        placeholder="ex. CPI A2"
-        maxLength={CLASS_NAME_MAX_LENGTH}
+        defaultValue={state.values?.className ?? ""}
+        options={classes}
+        placeholder="Choisis ta classe"
         required
         error={e.className}
       />
-      <datalist id="class-names">
-        {classes.map((c) => (
-          <option key={c} value={c} />
-        ))}
-      </datalist>
       <Field
         label="Mot de passe"
         name="password"
@@ -72,9 +65,8 @@ export function SignUpForm({ classes }: { classes: string[] }) {
         error={e.passwordConfirm}
       />
       <p className="text-xs text-muted">
-        Ton email n&apos;est jamais visible des autres : seul ton pseudo est affiché. Choisis le
-        même nom de classe que tes camarades pour voir leurs trajets.
-      </p>
+        Ton email n&apos;est jamais visible des autres : seul ton pseudo est affiché.
+</p>
       <FormMessage error={state.error} />
       <SubmitButton pending={pending}>Recevoir mon code</SubmitButton>
     </form>

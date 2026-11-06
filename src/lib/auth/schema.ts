@@ -30,7 +30,7 @@ export const classNameSchema = z
   .pipe(
     z
       .string()
-      .min(2, "Indique ta classe (ex. CPI A2)")
+      .min(2, "Choisis ta classe")
       .max(CLASS_NAME_MAX_LENGTH, `${CLASS_NAME_MAX_LENGTH} caractères maximum`),
   );
 
