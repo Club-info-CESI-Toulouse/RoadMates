@@ -13,7 +13,7 @@ type Line = [number, number][];
 export const MARKER_STYLE: Record<Kind, { color: string; label: string }> = {
   departure: { color: "#57534e", label: "Départ" },
   pickup: { color: "#fee131", label: "Rendez-vous" },
-  dropoff: { color: "#fee131", label: "Dépose" },
+  dropoff: { color: "#ea580c", label: "Dépose" },
   arrival: { color: "#000000", label: "Arrivée" },
 };
 

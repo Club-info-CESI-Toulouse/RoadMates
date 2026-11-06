@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { PointsMap } from "@/components/map/points-map";
+import { PointsMap, type MapPoint } from "@/components/map/points-map";
+import { MARKER_STYLE } from "@/components/map/trip-detail-map";
 import { MessageButton } from "@/components/message-button";
 import { RequestActions } from "@/components/request-actions";
+import type { LatLon } from "@/lib/geo/types";
 import type { Proposal } from "@/lib/matching/server";
 import { ROLE_LABELS } from "@/lib/trips/labels";
 import { fromMinutes } from "@/lib/trips/times";
@@ -17,11 +19,20 @@ type Props = {
   myTripId: string;
   date: string;
   sendBlocked?: string;
+  /** The viewer's own trip endpoints, shown only to them. */
+  myOrigin: LatLon;
+  myDestination: LatLon;
 };
 
-export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked }: Props) {
+export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked, myOrigin, myDestination }: Props) {
   const [showMap, setShowMap] = useState(false);
   const { other, match } = proposal;
+  const mapPoints: MapPoint[] = [
+    { ...myOrigin, label: "Point de départ", color: MARKER_STYLE.departure.color },
+    { ...match.pickup, label: `Point de rendez-vous (${fromMinutes(match.pickupMin)})`, color: MARKER_STYLE.pickup.color },
+    { ...match.dropoff, label: `Point de dépose (${fromMinutes(match.dropoffMin)})`, color: MARKER_STYLE.dropoff.color },
+    { ...myDestination, label: "Point d'arrivée", color: MARKER_STYLE.arrival.color },
+  ];
 
   return (
     <li className="flex flex-col gap-3 rounded-3xl border border-border bg-card shadow-sm p-4">
@@ -87,12 +98,18 @@ export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked 
         {showMap ? "Masquer la carte" : "Voir les points sur la carte"}
       </button>
       {showMap && (
-        <PointsMap
-          points={[
-            { ...match.pickup, label: `Rendez-vous ${fromMinutes(match.pickupMin)}`, color: "#fee131" },
-            { ...match.dropoff, label: `Dépose ${fromMinutes(match.dropoffMin)}`, color: "#57534e" },
-          ]}
-        />
+        <>
+          <PointsMap points={mapPoints} />
+          <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs" aria-label="Légende de la carte">
+            {mapPoints.map((point) => (
+              <li key={point.label} className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="size-3 rounded-full ring-1 ring-foreground" style={{ background: point.color }} />
+                {point.label}
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-muted">Ton départ et ton arrivée ne sont visibles que par toi.</p>
+        </>
       )}
 
       <div className="flex flex-wrap items-start justify-between gap-2">
