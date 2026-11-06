@@ -6,6 +6,7 @@ import type { ChatMessage } from "@/lib/messaging/server";
 import { authorizeRealtime, createClient } from "@/lib/supabase/client";
 
 const MAX_LENGTH = 2000;
+const MESSAGES_LOADED = 100;
 
 type Row = { id: string; sender_id: string; body: string; created_at: string };
 const toMessage = (r: Row): ChatMessage => ({ id: r.id, senderId: r.sender_id, body: r.body, createdAt: r.created_at });
@@ -29,6 +30,28 @@ export function ChatThread({
   // Live updates (RLS limits the stream to this user's conversations).
   useEffect(() => {
     let active = true;
+    // The page stays alive between visits and the socket can miss messages: reload from the database.
+    const reload = async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("id, sender_id, body, created_at")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(MESSAGES_LOADED);
+      if (!active || !data) return;
+      setMessages((list) => {
+        const byId = new Map(list.map((m) => [m.id, m]));
+        for (const row of data) byId.set(row.id, toMessage(row));
+        return [...byId.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+      });
+      supabase.rpc("mark_conversation_read", { p_id: conversationId });
+    };
+    const onVisible = () => {
+      if (document.visibilityState === "visible") reload();
+    };
+    reload();
+    window.addEventListener("focus", reload);
+    document.addEventListener("visibilitychange", onVisible);
     const channel = supabase
       .channel(`messages:${conversationId}`)
       .on(
@@ -41,10 +64,15 @@ export function ChatThread({
         },
       );
     authorizeRealtime(supabase).then(() => {
-      if (active) channel.subscribe();
+      if (active)
+        channel.subscribe((status) => {
+          if (status === "SUBSCRIBED") reload();
+        });
     });
     return () => {
       active = false;
+      window.removeEventListener("focus", reload);
+      document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
   }, [supabase, conversationId, myId]);
