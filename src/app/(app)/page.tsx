@@ -155,6 +155,8 @@ function Section({ section, date }: { section: TripSection; date: string }) {
               myTripId={trip.id}
               date={date}
               sendBlocked={sendBlocked}
+              myOrigin={trip.origin}
+              myDestination={trip.destination}
             />
           ))}
         </ul>
