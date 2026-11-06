@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { removePushSubscription, savePushSubscription, setNotificationPreference } from "./notifications-actions";
+import {
+  removePushSubscription,
+  savePushSubscription,
+  sendTestPushAction,
+  setNotificationPreference,
+} from "./notifications-actions";
 
 type DeviceState = "unsupported" | "denied" | "off" | "on" | "loading";
 
@@ -14,6 +19,7 @@ export function NotificationSettings({ pushEnabled, emailEnabled }: { pushEnable
   const [device, setDevice] = useState<DeviceState>("loading");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
+  const [testSent, setTestSent] = useState(false);
 
   useEffect(() => {
     const supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
@@ -22,6 +28,20 @@ export function NotificationSettings({ pushEnabled, emailEnabled }: { pushEnable
       .then((sub) => setDevice(sub ? "on" : Notification.permission === "denied" ? "denied" : "off"))
       .catch(() => setDevice("unsupported"));
   }, []);
+
+  async function runTest(endpoint: string) {
+    setTestSent(false);
+    setError(undefined);
+    if (await sendTestPushAction(endpoint)) setTestSent(true);
+    else setError("La notification de test n'a pas pu être envoyée");
+  }
+
+  function sendTest() {
+    startTransition(async () => {
+      const sub = await (await navigator.serviceWorker.ready).pushManager.getSubscription();
+      if (sub) await runTest(sub.endpoint);
+    });
+  }
 
   function enableDevice() {
     setError(undefined);
@@ -36,8 +56,12 @@ export function NotificationSettings({ pushEnabled, emailEnabled }: { pushEnable
           userVisibleOnly: true,
           applicationServerKey: base64UrlToBytes(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
         });
-        if (await savePushSubscription(sub.toJSON())) setDevice("on");
-        else setError("Activation impossible, réessaie");
+        if (!(await savePushSubscription(sub.toJSON()))) {
+          setError("Activation impossible, réessaie");
+          return;
+        }
+        setDevice("on");
+        await runTest(sub.endpoint);
       } catch {
         setError("Activation impossible sur cet appareil");
       }
@@ -77,6 +101,16 @@ export function NotificationSettings({ pushEnabled, emailEnabled }: { pushEnable
                 Désactiver
               </button>
             </div>
+          )}
+          {device === "on" && (
+            <button type="button" disabled={pending} onClick={sendTest} className="self-start underline disabled:opacity-60">
+              Envoyer une notification de test
+            </button>
+          )}
+          {device === "on" && testSent && (
+            <span role="status" className="text-muted">
+              Test envoyé. Si rien n&apos;arrive d&apos;ici quelques secondes, vérifie les réglages de notifications de ton téléphone.
+            </span>
           )}
           {device === "off" && (
             <button type="button" disabled={pending} onClick={enableDevice} className="self-start rounded-full bg-primary px-3 py-2 font-semibold text-primary-foreground disabled:opacity-60">

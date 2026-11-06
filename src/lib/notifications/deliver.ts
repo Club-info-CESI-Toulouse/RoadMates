@@ -80,3 +80,31 @@ export async function deliverNotification(id: string) {
     if (user.user?.email) await sendEmail(user.user.email, title, text, `${APP_URL}${path}`).catch(() => false);
   }
 }
+
+/** Sends a test push to one of the user's own devices. False if it could not be sent. */
+export async function sendTestPush(userId: string, endpoint: string) {
+  if (!setupVapid()) return false;
+  const db = createAdminClient();
+  const { data: sub } = await db
+    .from("push_subscriptions")
+    .select("endpoint, p256dh, auth")
+    .eq("user_id", userId)
+    .eq("endpoint", endpoint)
+    .maybeSingle();
+  if (!sub) return false;
+  try {
+    await webpush.sendNotification(
+      { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+      JSON.stringify({
+        title: "RoadMates",
+        body: "Notification de test : le push fonctionne sur cet appareil.",
+        url: "/compte",
+        tag: "push-test",
+      }),
+      { TTL: 60, urgency: "high" },
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
