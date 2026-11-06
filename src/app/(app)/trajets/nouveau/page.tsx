@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { FreshForm } from "@/components/fresh-form";
 import { PageShell } from "@/components/page-shell";
 import { listMyAddressOptions } from "@/lib/addresses/server";
 import { getCurrentProfile } from "@/lib/auth/user";
@@ -19,5 +20,10 @@ export default function NewTripPage() {
 
 async function NewTrip() {
   const profile = await getCurrentProfile();
-  return <NewCommuteForm addresses={await listMyAddressOptions(profile.id)} />;
+  const addresses = await listMyAddressOptions(profile.id);
+  return (
+    <FreshForm>
+      <NewCommuteForm addresses={addresses} />
+    </FreshForm>
+  );
 }
