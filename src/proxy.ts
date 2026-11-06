@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
 // Optimistic redirects only; pages and actions re-check the user themselves.
-const AUTH_PAGES = ["/connexion", "/inscription", "/verification", "/mot-de-passe-oublie"];
+const AUTH_PAGES = ["/connexion", "/inscription", "/mot-de-passe-oublie"];
 
 export async function proxy(request: NextRequest) {
   const { response, userId } = await updateSession(request);
