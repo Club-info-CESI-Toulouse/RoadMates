@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getUserId } from "@/lib/auth/session";
+import { sendTestPush } from "@/lib/notifications/deliver";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -43,4 +44,10 @@ export async function setNotificationPreference(channel: "push" | "email", enabl
     .update(channel === "push" ? { push_enabled: !!enabled } : { email_enabled: !!enabled })
     .eq("id", userId);
   revalidatePath("/compte");
+}
+
+export async function sendTestPushAction(endpoint: string): Promise<boolean> {
+  const userId = await getUserId();
+  if (!userId || typeof endpoint !== "string") return false;
+  return sendTestPush(userId, endpoint);
 }
