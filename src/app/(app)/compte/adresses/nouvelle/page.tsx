@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { FreshForm } from "@/components/fresh-form";
 import { PageShell } from "@/components/page-shell";
 import { MAX_ADDRESSES } from "@/lib/addresses/constants";
 import { listMyAddresses } from "@/lib/addresses/server";
@@ -22,5 +23,9 @@ export default function NewAddressPage() {
 async function NewAddress() {
   const profile = await getCurrentProfile();
   if ((await listMyAddresses(profile.id)).length >= MAX_ADDRESSES) redirect("/compte/adresses");
-  return <AddressForm others={[]} />;
+  return (
+    <FreshForm>
+      <AddressForm others={[]} />
+    </FreshForm>
+  );
 }

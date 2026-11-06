@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
+import { FreshForm } from "@/components/fresh-form";
 import { PageShell } from "@/components/page-shell";
 import { listMyAddresses } from "@/lib/addresses/server";
 import { getCurrentProfile } from "@/lib/auth/user";
@@ -27,5 +28,9 @@ async function EditAddress({ params }: { params: Promise<{ id: string }> }) {
   const address = addresses.find((a) => a.id === id);
   if (!address) notFound();
   const others = addresses.filter((a) => a.id !== id).map(({ id, name, icon }) => ({ id, name, icon }));
-  return <AddressForm address={address} others={others} />;
+  return (
+    <FreshForm>
+      <AddressForm address={address} others={others} />
+    </FreshForm>
+  );
 }
