@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef } from "react";
 import { loadMapLibre } from "@/lib/geo/maplibre";
+import { addPins } from "@/lib/geo/pins";
 import { MAP_STYLES } from "@/lib/geo/map-styles";
 import type { LatLon } from "@/lib/geo/types";
 
@@ -85,11 +86,7 @@ export function TripDetailMap({
         });
       });
 
-      for (const m of markers)
-        new Marker({ color: MARKER_STYLE[m.kind].color })
-          .setLngLat([m.lon, m.lat])
-          .setPopup(new Popup({ closeButton: false }).setText(MARKER_STYLE[m.kind].label))
-          .addTo(instance);
+      addPins({ Marker, Popup }, instance, markers.map((m) => ({ ...m, label: MARKER_STYLE[m.kind].label, color: MARKER_STYLE[m.kind].color })));
 
       observer = new MutationObserver(() => instance.setStyle(MAP_STYLES[currentTheme()]));
       observer.observe(document.documentElement, { attributeFilter: ["data-theme"] });

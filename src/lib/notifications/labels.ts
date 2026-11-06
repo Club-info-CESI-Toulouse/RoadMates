@@ -45,5 +45,25 @@ export function notificationText(kind: string, payload: NotificationPayload): st
 export const notificationTitle = (kind: string) =>
   kind === "new_message" ? "Nouveau message" : "Covoiturage";
 
-export const notificationUrl = (kind: string, conversationId: string | null) =>
-  kind === "new_message" && conversationId ? `/messagerie/${conversationId}` : "/trajets";
+export type NotificationRequest = {
+  date: string;
+  driver_id: string;
+  driver_trip_id: string;
+  passenger_trip_id: string;
+};
+
+/** Where a notification leads: the conversation, or the proposal behind the request. */
+export function notificationUrl(
+  kind: string,
+  conversationId: string | null,
+  request?: NotificationRequest | null,
+  userId?: string,
+) {
+  if (kind === "new_message" && conversationId) return `/messagerie/${conversationId}`;
+  if (!request || !userId) return "/trajets";
+  const [mine, other] =
+    request.driver_id === userId
+      ? [request.driver_trip_id, request.passenger_trip_id]
+      : [request.passenger_trip_id, request.driver_trip_id];
+  return `/proposition/${mine}/${other}?date=${request.date}`;
+}

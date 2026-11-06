@@ -73,7 +73,7 @@ export function AppNav() {
 
 function ActiveNavBar() {
   const pathname = usePathname();
-  return <NavBar pathname={pathname} unread={useUnreadCount(pathname)} />;
+  return <NavBar pathname={pathname} unread={useUnreadCount(pathname)} pending={usePendingCount(pathname)} />;
 }
 
 // Conversations with unread messages, live (RLS scopes the stream to the user).
@@ -103,7 +103,44 @@ function useUnreadCount(pathname: string | null) {
   return count;
 }
 
-function NavBar({ pathname, unread = 0 }: { pathname: string | null; unread?: number }) {
+// Requests received and still waiting for an answer from this user, live.
+function usePendingCount(pathname: string | null) {
+  const [count, setCount] = useState(0);
+  const [supabase] = useState(createClient);
+
+  useEffect(() => {
+    let active = true;
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+    supabase.auth.getSession().then(async ({ data }) => {
+      const userId = data.session?.user.id;
+      if (!active || !userId) return;
+      const refresh = async () => {
+        const { count } = await supabase
+          .from("trip_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pending")
+          .neq("sender_id", userId)
+          .gt("driver_departure_at", new Date().toISOString());
+        if (active) setCount(count ?? 0);
+      };
+      await refresh();
+      await authorizeRealtime(supabase);
+      if (!active) return;
+      channel = supabase
+        .channel("pending-requests")
+        .on("postgres_changes", { event: "*", schema: "public", table: "trip_requests" }, refresh)
+        .subscribe();
+    });
+    return () => {
+      active = false;
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [supabase, pathname]);
+
+  return count;
+}
+
+function NavBar({ pathname, unread = 0, pending = 0 }: { pathname: string | null; unread?: number; pending?: number }) {
   const isActive = (href: string) =>
     !!pathname &&
     (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
@@ -119,6 +156,11 @@ function NavBar({ pathname, unread = 0 }: { pathname: string | null; unread?: nu
       <ul className="grid grid-cols-4 px-1 py-1 md:flex md:flex-col md:gap-1 md:px-3 md:py-0">
         {ITEMS.map((item) => {
           const active = isActive(item.href);
+          const badge = item.href === "/messagerie" ? unread : item.href === "/trajets" ? pending : 0;
+          const badgeLabel =
+            item.href === "/messagerie"
+              ? `${badge} conversation${badge > 1 ? "s" : ""} non lue${badge > 1 ? "s" : ""}`
+              : `${badge} demande${badge > 1 ? "s" : ""} en attente`;
           return (
             <li key={item.href}>
               <Link
@@ -134,16 +176,14 @@ function NavBar({ pathname, unread = 0 }: { pathname: string | null; unread?: nu
                   className={`relative rounded-full px-4 py-0.5 md:p-0 ${active ? "bg-primary text-primary-foreground md:bg-transparent" : ""}`}
                 >
                   {item.icon}
-                  {item.href === "/messagerie" && unread > 0 && (
-                    <span className="absolute top-0 right-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] leading-4 font-bold text-white md:-top-1.5 md:-right-2">
-                      {unread > 9 ? "9+" : unread}
+                  {badge > 0 && (
+                    <span data-nav-badge className="absolute top-0 right-2 min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] leading-4 font-bold text-white md:-top-1.5 md:-right-2">
+                      {badge > 9 ? "9+" : badge}
                     </span>
                   )}
                 </span>
                 {item.label}
-                {item.href === "/messagerie" && unread > 0 && (
-                  <span className="sr-only">, {unread} conversation{unread > 1 ? "s" : ""} non lue{unread > 1 ? "s" : ""}</span>
-                )}
+                {badge > 0 && <span className="sr-only">, {badgeLabel}</span>}
               </Link>
             </li>
           );

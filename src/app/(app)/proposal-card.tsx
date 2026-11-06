@@ -6,6 +6,7 @@ import { PointsMap, type MapPoint } from "@/components/map/points-map";
 import { MARKER_STYLE } from "@/components/map/trip-detail-map";
 import { MessageButton } from "@/components/message-button";
 import { RequestActions } from "@/components/request-actions";
+import { RequestStatusBadge } from "@/components/request-status-badge";
 import type { LatLon } from "@/lib/geo/types";
 import type { Proposal } from "@/lib/matching/server";
 import { ROLE_LABELS } from "@/lib/trips/labels";
@@ -27,6 +28,7 @@ type Props = {
 export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked, myOrigin, myDestination }: Props) {
   const [showMap, setShowMap] = useState(false);
   const { other, match } = proposal;
+  const status = proposal.request?.status ?? (proposal.wasCancelled ? "cancelled" : null);
   const mapPoints: MapPoint[] = [
     { ...myOrigin, label: "Point de départ", color: MARKER_STYLE.departure.color },
     { ...match.pickup, label: `Point de rendez-vous (${fromMinutes(match.pickupMin)})`, color: MARKER_STYLE.pickup.color },
@@ -49,9 +51,12 @@ export function ProposalCard({ proposal, iAmDriver, myTripId, date, sendBlocked,
             {other.role === "driver" && ` · ${proposal.seatsLeft} place${proposal.seatsLeft > 1 ? "s" : ""} libre${proposal.seatsLeft > 1 ? "s" : ""}`}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-surface px-2.5 py-1 text-xs font-semibold" title="Indice de compatibilité">
-          {match.score} %
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-semibold" title="Indice de compatibilité">
+            {match.score} %
+          </span>
+          {status && <RequestStatusBadge status={status} />}
+        </div>
       </div>
 
       <ol className="flex flex-col gap-1.5 text-sm">

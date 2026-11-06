@@ -75,19 +75,27 @@ export function NotificationBanners() {
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
-          ({ new: notification }) => {
-            const { id, kind, payload, conversation_id: conversationId } = notification as {
+          async ({ new: notification }) => {
+            const { id, kind, payload, conversation_id: conversationId, request_id: requestId } = notification as {
               id: string;
               kind: string;
               payload: NotificationPayload;
               conversation_id: string | null;
+              request_id: string | null;
             };
             if (kind === "new_message") return;
+            const { data: request } = requestId
+              ? await supabase
+                  .from("trip_requests")
+                  .select("date, driver_id, driver_trip_id, passenger_trip_id")
+                  .eq("id", requestId)
+                  .maybeSingle()
+              : { data: null };
             show({
               id,
               title: notificationTitle(kind),
               text: notificationText(kind, payload),
-              href: notificationUrl(kind, conversationId),
+              href: notificationUrl(kind, conversationId, request, userId),
             });
             router.refresh();
           },

@@ -4,11 +4,18 @@ import { useState } from "react";
 import { MARKER_STYLE, TripDetailMap } from "@/components/map/trip-detail-map";
 import { MessageButton } from "@/components/message-button";
 import { ESTIMATE_WARNING, RequestActions } from "@/components/request-actions";
+import { RequestStatusBadge } from "@/components/request-status-badge";
 import type { ProposalDetail } from "@/lib/matching/detail";
 import { ROLE_LABELS } from "@/lib/trips/labels";
 import { fromMinutes } from "@/lib/trips/times";
 
 const km = (m: number) => `${(m / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} km`;
+const LEGEND_LABELS: Record<keyof typeof MARKER_STYLE, string> = {
+  departure: "Point de départ",
+  pickup: "Point de rendez-vous",
+  dropoff: "Point de dépose",
+  arrival: "Point d\u2019arrivée",
+};
 const card = "flex flex-col gap-3 rounded-3xl border border-border bg-card p-5 shadow-sm";
 
 function Dot({ kind }: { kind: keyof typeof MARKER_STYLE }) {
@@ -21,10 +28,24 @@ function Dot({ kind }: { kind: keyof typeof MARKER_STYLE }) {
   );
 }
 
+function Legend({ kinds }: { kinds: (keyof typeof MARKER_STYLE)[] }) {
+  return (
+    <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs" aria-label="Légende de la carte">
+      {kinds.map((kind) => (
+        <li key={kind} className="flex items-center gap-1.5">
+          <Dot kind={kind} />
+          {LEGEND_LABELS[kind]}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function ProposalDetailView({ detail }: { detail: ProposalDetail }) {
   const [fullscreen, setFullscreen] = useState(false);
   const { match, other, map } = detail;
   const iAmDriver = detail.myRole === "driver";
+  const status = detail.request?.status ?? (detail.wasCancelled ? "cancelled" : null);
   const placeOf = (kind: string) =>
     kind === "pickup" ? detail.pickupLabel : kind === "dropoff" ? detail.dropoffLabel : null;
 
@@ -41,7 +62,14 @@ export function ProposalDetailView({ detail }: { detail: ProposalDetail }) {
         </button>
       </div>
 
+      <Legend kinds={map.markers.map((m) => m.kind)} />
+
       <section className={card}>
+        {status && (
+          <div className="flex justify-end">
+            <RequestStatusBadge status={status} />
+          </div>
+        )}
         <RequestActions
           otherName={other.displayName}
           request={detail.request}
@@ -139,6 +167,9 @@ export function ProposalDetailView({ detail }: { detail: ProposalDetail }) {
             className="min-h-0 w-full flex-1"
           />
           <div className="max-h-[40dvh] overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+            <div className="mb-4">
+              <Legend kinds={map.markers.map((m) => m.kind)} />
+            </div>
             <ol className="flex flex-col gap-3">
               {detail.timeline.map((step) => (
                 <li key={step.kind} className="flex items-start gap-3">
@@ -157,7 +188,7 @@ export function ProposalDetailView({ detail }: { detail: ProposalDetail }) {
             {!iAmDriver && (
               <p className="mt-3 text-xs text-muted">
                 Seul le tronçon partagé est affiché : l&apos;itinéraire complet du conducteur reste
-                privé.
+                privé. Ton départ et ton arrivée ne sont visibles que par toi.
               </p>
             )}
           </div>
