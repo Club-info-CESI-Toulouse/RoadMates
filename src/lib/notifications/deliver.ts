@@ -45,7 +45,7 @@ export async function deliverNotification(id: string) {
     .update({ delivered_at: new Date().toISOString() })
     .eq("id", id)
     .is("delivered_at", null)
-    .select("id, user_id, kind, payload, conversation_id")
+    .select("id, user_id, kind, payload, conversation_id, trip_requests (date, driver_id, driver_trip_id, passenger_trip_id)")
     .maybeSingle();
   if (!n) return;
 
@@ -53,7 +53,7 @@ export async function deliverNotification(id: string) {
   if (!profile) return;
   const text = notificationText(n.kind, n.payload as NotificationPayload);
   const title = notificationTitle(n.kind);
-  const path = notificationUrl(n.kind, n.conversation_id);
+  const path = notificationUrl(n.kind, n.conversation_id, n.trip_requests, n.user_id);
 
   let pushed = false;
   if (profile.push_enabled && setupVapid()) {

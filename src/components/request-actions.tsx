@@ -56,7 +56,7 @@ export function RequestActions({ otherName, request, send, sendBlocked }: Props)
   } else if (request.status === "pending" && request.sentByMe) {
     content = (
       <>
-        <span className="text-sm font-medium">Demande envoyée, en attente</span>
+        <span className="text-sm font-medium">Demande envoyée</span>
         <button type="button" disabled={pending} className={secondary} onClick={() => run(() => cancelRequestAction(request.id), "Annuler ta demande ?")}>
           Annuler
         </button>
@@ -82,7 +82,6 @@ export function RequestActions({ otherName, request, send, sendBlocked }: Props)
     const lockAt = new Date(request.driverDepartureAt).getTime() - CANCEL_LOCK_BEFORE_DEPARTURE_MIN * 60_000;
     content = (
       <>
-        <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground">Covoiturage confirmé</span>
         <button
           type="button"
           disabled={pending}

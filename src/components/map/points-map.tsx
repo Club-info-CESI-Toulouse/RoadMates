@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Map as MapLibreMap } from "maplibre-gl";
 import { useEffect, useRef } from "react";
 import { loadMapLibre } from "@/lib/geo/maplibre";
+import { addPins } from "@/lib/geo/pins";
 import { MAP_STYLES, PLACE_ZOOM } from "@/lib/geo/map-styles";
 import type { LatLon } from "@/lib/geo/types";
 
@@ -32,11 +33,7 @@ export function PointsMap({ points, className }: { points: MapPoint[]; className
         zoom: PLACE_ZOOM,
         attributionControl: { compact: true },
       });
-      for (const p of pts)
-        new Marker({ color: p.color })
-          .setLngLat([p.lon, p.lat])
-          .setPopup(new Popup({ closeButton: false }).setText(p.label))
-          .addTo(map);
+      addPins({ Marker, Popup }, map, pts);
       if (pts.length > 1) {
         const bounds = new LngLatBounds();
         pts.forEach((p) => bounds.extend([p.lon, p.lat]));

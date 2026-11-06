@@ -59,6 +59,8 @@ export type Proposal = {
   /** Seats left on the driver's occurrence. */
   seatsLeft: number;
   request: ProposalRequest | null;
+  /** A previous request on this pair and date was cancelled. */
+  wasCancelled: boolean;
 };
 
 export type TripSection = { trip: LoadedTrip; seatsLeft: number | null; proposals: Proposal[] };
@@ -271,6 +273,9 @@ export async function getProposals(userId: string, date: string): Promise<TripSe
           pickupLabel: request?.pickup_label ?? null,
           dropoffLabel: request?.dropoff_label ?? null,
           seatsLeft: load.seatsLeft,
+          wasCancelled: (requests ?? []).some(
+            (r) => r.driver_trip_id === driver.id && r.passenger_trip_id === passenger.id && r.status === "cancelled",
+          ),
           request: request
             ? {
                 id: request.id,

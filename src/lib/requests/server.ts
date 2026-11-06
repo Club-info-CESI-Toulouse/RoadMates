@@ -92,7 +92,7 @@ export type RequestView = {
   id: string;
   date: string;
   slot: "morning" | "evening";
-  status: "pending" | "accepted";
+  status: "pending" | "accepted" | "cancelled";
   sentByMe: boolean;
   iAmDriver: boolean;
   otherId: string;
@@ -116,7 +116,6 @@ export async function listMyRequests(userId: string): Promise<RequestView[]> {
     .select(
       "id, date, slot, status, sender_id, driver_id, passenger_id, driver_departure_at, pickup_at, dropoff_at, pickup_label, dropoff_label, walk_min, detour_min, detour_m",
     )
-    .in("status", ["pending", "accepted"])
     .gte("date", localDate())
     .order("pickup_at");
   const rows = (data ?? []).filter((r) => new Date(r.dropoff_at).getTime() > Date.now());
@@ -133,7 +132,7 @@ export async function listMyRequests(userId: string): Promise<RequestView[]> {
       id: r.id,
       date: r.date,
       slot: r.slot,
-      status: r.status as "pending" | "accepted",
+      status: r.status,
       sentByMe: r.sender_id === userId,
       iAmDriver: r.driver_id === userId,
       otherId,

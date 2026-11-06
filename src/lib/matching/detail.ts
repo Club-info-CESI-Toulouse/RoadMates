@@ -21,13 +21,14 @@ export type ProposalDetail = {
   dropoffLabel: string | null;
   timeline: { kind: MarkerKind; min: number; note?: string }[];
   /**
-   * Privacy: the driver sees their whole route; the passenger only the shared
-   * stretch, the meeting point and the drop-off.
+   * Privacy: the driver sees their whole route; the passenger only the shared stretch,
+   * the meeting point and the drop-off. Departure and arrival are the viewer's own.
    */
   map: { shared: Line | null; driverOnly: Line[]; markers: (LatLon & { kind: MarkerKind })[] };
   seats: { taken: number; total: number };
   commonTrips: number;
   request: ProposalRequest | null;
+  wasCancelled: boolean;
   sendBlocked?: string;
 };
 
@@ -62,14 +63,14 @@ export async function getProposalDetail(
       .from("trip_requests")
       .select("id, status, sender_id, driver_trip_id, passenger_trip_id, driver_departure_at, pickup_at, dropoff_at, pickup_lat, pickup_lon, pickup_label, dropoff_lat, dropoff_lon, dropoff_label, walk_min, detour_min, detour_m, score")
       .eq("date", date)
-      .eq("slot", mine.slot)
-      .neq("status", "cancelled"),
+      .eq("slot", mine.slot),
     supabase.from("profiles").select("display_name").eq("id", other.ownerId).single(),
     countCommonTrips(myTripId, otherTripId, mine.slot),
   ]);
   const occurrence = load?.[0];
   const seats = { taken: occurrence?.accepted ?? 0, total: occurrence?.seats_total ?? driver.seats ?? 0 };
-  const request = (requests ?? []).find((r) => r.driver_trip_id === driver.id && r.passenger_trip_id === passenger.id);
+  const pair = (requests ?? []).filter((r) => r.driver_trip_id === driver.id && r.passenger_trip_id === passenger.id);
+  const request = pair.find((r) => r.status !== "cancelled");
 
   // Request snapshot wins for times and points; the route is recomputed for the map only.
   const fixed = request
@@ -106,10 +107,10 @@ export async function getProposalDetail(
       ? [sliceBetween(route, driver.origin, match.pickup), sliceBetween(route, match.dropoff, driver.destination)].filter((l) => l.length > 1)
       : [];
   const markers: ProposalDetail["map"]["markers"] = [
-    ...(iAmDriver ? [{ ...driver.origin, kind: "departure" as const }] : []),
+    { ...mine.origin, kind: "departure" },
     { ...match.pickup, kind: "pickup" },
     { ...match.dropoff, kind: "dropoff" },
-    ...(iAmDriver ? [{ ...driver.destination, kind: "arrival" as const }] : []),
+    { ...mine.destination, kind: "arrival" },
   ];
 
   const durationMin = full ? full.driverArrivalMin - full.driverDepartureMin : null;
@@ -153,6 +154,7 @@ export async function getProposalDetail(
     request: request
       ? { id: request.id, status: request.status, sentByMe: request.sender_id === userId, driverDepartureAt: request.driver_departure_at }
       : null,
+    wasCancelled: pair.some((r) => r.status === "cancelled"),
     sendBlocked,
   };
 }

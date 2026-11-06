@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { PageShell } from "@/components/page-shell";
 import { getCurrentProfile } from "@/lib/auth/user";
 import { formatClock, formatDayLabel, localDate } from "@/lib/dates";
-import { notificationText, type NotificationPayload } from "@/lib/notifications/labels";
+import { notificationText, notificationUrl, type NotificationPayload } from "@/lib/notifications/labels";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Notifications · RoadMates" };
@@ -25,7 +25,7 @@ async function Notifications() {
   await Promise.all([supabase.rpc("expire_trip_requests"), supabase.rpc("purge_old_notifications")]);
   const { data } = await supabase
     .from("notifications")
-    .select("id, kind, payload, read_at, created_at")
+    .select("id, kind, payload, read_at, created_at, conversation_id, trip_requests (date, driver_id, driver_trip_id, passenger_trip_id)")
     .eq("user_id", profile.id)
     .neq("kind", "new_message")
     .order("created_at", { ascending: false })
@@ -39,12 +39,17 @@ async function Notifications() {
     <>
       <ul className="flex flex-col gap-2">
         {items.map((n) => (
-          <li key={n.id} className={`rounded-3xl border border-border bg-card shadow-sm p-4 text-sm ${n.read_at ? "" : "border-foreground"}`}>
+          <li key={n.id}>
+            <Link
+              href={notificationUrl(n.kind, n.conversation_id, n.trip_requests, profile.id)}
+              className={`block rounded-3xl border border-border bg-card p-4 text-sm shadow-sm ${n.read_at ? "" : "border-foreground"}`}
+            >
             <p>{notificationText(n.kind, n.payload as NotificationPayload)}</p>
             <p className="mt-1 text-xs text-muted">
               {localDate(new Date(n.created_at)) === localDate() ? "Aujourd'hui" : formatDayLabel(localDate(new Date(n.created_at)))} à{" "}
               {formatClock(n.created_at)}
             </p>
+          </Link>
           </li>
         ))}
       </ul>

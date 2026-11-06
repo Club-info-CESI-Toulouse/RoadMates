@@ -1,5 +1,6 @@
 import { MessageButton } from "@/components/message-button";
 import { RequestActions } from "@/components/request-actions";
+import { RequestStatusBadge } from "@/components/request-status-badge";
 import { formatClock, formatDayLabel } from "@/lib/dates";
 import { listMyRequests } from "@/lib/requests/server";
 import { SLOT_LABELS } from "@/lib/trips/labels";
@@ -15,10 +16,13 @@ export async function MyRequests({ userId }: { userId: string }) {
       <ul className="flex flex-col gap-3">
         {requests.map((r) => (
           <li key={r.id} className="flex flex-col gap-2 rounded-3xl border border-border bg-card shadow-sm p-4 text-sm">
-            <p className="font-semibold">
-              {formatDayLabel(r.date)} · {SLOT_LABELS[r.slot]} · {r.otherName}
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-semibold">
+                {formatDayLabel(r.date)} · {SLOT_LABELS[r.slot]} · {r.otherName}
               <span className="font-normal text-muted"> ({r.iAmDriver ? "passager" : "conducteur"})</span>
-            </p>
+              </p>
+              <RequestStatusBadge status={r.status} />
+            </div>
             <p>
               <span className="font-semibold tabular-nums">{formatClock(r.pickupAt)}</span> Rendez-vous
               {r.pickupLabel && <span className="text-muted"> · {r.pickupLabel}</span>}
