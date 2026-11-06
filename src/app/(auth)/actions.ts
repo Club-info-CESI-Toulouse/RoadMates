@@ -3,10 +3,10 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isLocked, recordFailure, resetAttempts } from "@/lib/auth/attempts";
+import { confirmAccount, confirmPendingAccount, createConfirmedAccount } from "@/lib/auth/confirm";
 import { authErrorMessage } from "@/lib/auth/errors";
 import { clearPending, getPending, setPending, type PendingPurpose } from "@/lib/auth/pending";
 import {
-  codeSchema,
   emailSchema,
   resetPasswordSchema,
   signInSchema,
@@ -55,31 +55,28 @@ export async function signUp(_: FormState, formData: FormData): Promise<FormStat
     return { fieldErrors: { className: "Choisis une classe dans la liste" }, values };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { display_name: displayName, class_name: className } },
   });
-  if (error) return { error: authErrorMessage("signUp", error), values };
+  const ACCOUNT_EXISTS = "Impossible de créer ce compte. Si tu en as déjà un, connecte-toi.";
 
-  await resetAttempts(email, "signup");
-  await setPending(email, "signup");
-  redirect("/verification");
-}
+  if (error) {
+    // The code email is informative: a mail failure must not block the sign-up.
+    const mailFailed = (error.status ?? 0) >= 500 || error.code === "over_email_send_rate_limit";
+    if (!mailFailed) return { error: authErrorMessage("signUp", error), values };
+    if (!(await createConfirmedAccount({ email, password, displayName, className })))
+      return { error: ACCOUNT_EXISTS, values };
+  } else {
+    // Supabase returns no identity when the address already has a validated account.
+    if (!data.user?.identities?.length) return { error: ACCOUNT_EXISTS, values };
+    if (!(await confirmAccount(data.user.id, password)))
+      return { error: "Compte créé mais non validé : réessaie de te connecter", values };
+  }
 
-export async function verifySignUp(_: FormState, formData: FormData): Promise<FormState> {
-  const email = await getPending("signup");
-  if (!email) return { error: EXPIRED };
-  const parsed = codeSchema.safeParse(formData.get("code"));
-  if (!parsed.success) return { fieldErrors: { code: parsed.error.issues[0].message } };
-  if (await isLocked(email, "signup")) return { error: LOCKED };
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({ email, token: parsed.data, type: "email" });
-  if (error) return failedCode(email, "signup");
-
-  await resetAttempts(email, "signup");
-  await clearPending();
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+  if (signInError) return { error: authErrorMessage("signIn", signInError), values };
   redirect("/");
 }
 
@@ -107,10 +104,12 @@ export async function signIn(_: FormState, formData: FormData): Promise<FormStat
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error?.code === "email_not_confirmed") {
-    await supabase.auth.resend({ type: "signup", email });
-    await resetAttempts(email, "signup");
-    await setPending(email, "signup");
-    redirect("/verification");
+    // Supabase only answers this once the password is correct: validate the older account.
+    const retry = (await confirmPendingAccount(email))
+      ? (await supabase.auth.signInWithPassword({ email, password })).error
+      : error;
+    if (retry) return { error: authErrorMessage("signIn", retry), values };
+    redirect("/");
   }
   if (error) return { error: authErrorMessage("signIn", error), values };
   redirect("/");

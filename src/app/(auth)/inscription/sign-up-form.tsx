@@ -68,7 +68,7 @@ export function SignUpForm({ classes }: { classes: string[] }) {
         Ton email n&apos;est jamais visible des autres : seul ton pseudo est affiché.
 </p>
       <FormMessage error={state.error} />
-      <SubmitButton pending={pending}>Recevoir mon code</SubmitButton>
+      <SubmitButton pending={pending}>Créer mon compte</SubmitButton>
     </form>
   );
 }

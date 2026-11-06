@@ -37,7 +37,7 @@ Spec complète et décisions : `docs/NOTES.md` (source de vérité). Ce fichier 
 
 ## Règles métier non négociables
 - Inscription **@viacesi.fr** seulement (vérifiée côté serveur : trigger SQL ou Auth Hook, plus contrôle côté client). Email unique = clé du compte, jamais visible des autres. Seul le **pseudo/prénom** est affiché (non unique, modifiable).
-- Inscription : email, mot de passe + confirmation, pseudo/prénom, puis **code reçu par email** pour valider.
+- Inscription : email, mot de passe + confirmation, pseudo/prénom, puis compte validé immédiatement ; le **code reste envoyé par email** mais n'est plus à saisir (décision de Yoan, nov. 2026 : l'adresse n'est donc plus prouvée).
 - Trajet = modèle **récurrent** (jours, horaires, rôle conducteur/passager, places). **Occurrence** = trajet à une date, matin ou soir. Demandes, places, statuts et annulations se gèrent **par occurrence**.
 - Demande : sur le trajet d'un autre utilisateur, **un seul jour, matin ou soir**, dans les deux sens. Statuts : exactement **en attente**, **acceptée**, **annulée**. Un refus = annulée. Une place est prise seulement à l'acceptation.
 - Limite : **10 demandes en attente envoyées** par utilisateur, par jour et par créneau.
