@@ -48,8 +48,8 @@ export const notificationTitle = (kind: string) =>
 export type NotificationRequest = {
   date: string;
   driver_id: string;
-  driver_trip_id: string;
-  passenger_trip_id: string;
+  driver_trip_id: string | null;
+  passenger_trip_id: string | null;
 };
 
 /** Where a notification leads: the conversation, or the proposal behind the request. */
@@ -60,7 +60,8 @@ export function notificationUrl(
   userId?: string,
 ) {
   if (kind === "new_message" && conversationId) return `/messagerie/${conversationId}`;
-  if (!request || !userId) return "/trajets";
+  // The trips may be gone: the request then only lives in the history.
+  if (!request?.driver_trip_id || !request.passenger_trip_id || !userId) return "/trajets";
   const [mine, other] =
     request.driver_id === userId
       ? [request.driver_trip_id, request.passenger_trip_id]

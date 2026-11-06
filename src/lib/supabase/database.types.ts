@@ -536,15 +536,15 @@ export type Database = {
           distance_m: number
           driver_departure_at: string
           driver_id: string
-          driver_trip_id: string
+          driver_trip_id: string | null
           dropoff_at: string
           dropoff_label: string | null
           dropoff_lat: number
           dropoff_lon: number
           id: string
-          occurrence_id: string
+          occurrence_id: string | null
           passenger_id: string
-          passenger_trip_id: string
+          passenger_trip_id: string | null
           pickup_at: string
           pickup_label: string | null
           pickup_lat: number
@@ -566,15 +566,15 @@ export type Database = {
           distance_m: number
           driver_departure_at: string
           driver_id: string
-          driver_trip_id: string
+          driver_trip_id?: string | null
           dropoff_at: string
           dropoff_label?: string | null
           dropoff_lat: number
           dropoff_lon: number
           id?: string
-          occurrence_id: string
+          occurrence_id?: string | null
           passenger_id: string
-          passenger_trip_id: string
+          passenger_trip_id?: string | null
           pickup_at: string
           pickup_label?: string | null
           pickup_lat: number
@@ -596,15 +596,15 @@ export type Database = {
           distance_m?: number
           driver_departure_at?: string
           driver_id?: string
-          driver_trip_id?: string
+          driver_trip_id?: string | null
           dropoff_at?: string
           dropoff_label?: string | null
           dropoff_lat?: number
           dropoff_lon?: number
           id?: string
-          occurrence_id?: string
+          occurrence_id?: string | null
           passenger_id?: string
-          passenger_trip_id?: string
+          passenger_trip_id?: string | null
           pickup_at?: string
           pickup_label?: string | null
           pickup_lat?: number
