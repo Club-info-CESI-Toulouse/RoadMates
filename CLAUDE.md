@@ -20,7 +20,7 @@ Spec complète et décisions : `docs/NOTES.md` (source de vérité). Ce fichier 
 - Si une décision est marquée ❓ dans les notes, appliquer le défaut de la section « Défauts » ci-dessous sans demander, sauf blocage réel.
 
 ## Autonomie et git
-- Dépôt GitHub + déploiement Vercel (accès déjà donné). Déploiement automatique sur push de `main`.
+- Dépôt GitHub **public** `Club-info-CESI-Toulouse/RoadMates` (remote `origin` ; ancien dépôt perso privé = remote `perso`) + déploiement Vercel (Hobby : seuls les commits de Yoan se déploient). Déploiement automatique sur push de `main`. Ne jamais committer de données personnelles (dépôt public).
 - **Pendant le développement des phases 1 à 11, push direct sur `main` autorisé sans demander**, à chaque unité cohérente de travail, si lint + typecheck + tests concernés passent. Commits petits et fréquents. Si le build Vercel échoue après un push, corriger tout de suite.
 - **Demander d'abord à Yoan** pour : fonctionnalité hors phases 1 à 11 ou listée en « Hors périmètre » (§16), service payant, changement de stack, force push ou réécriture d'historique, suppression de branche/projet/dépôt, migration destructive sur des données réelles, changement de paramètres de production (domaines, équipes, facturation), tout ce qui exposerait des données personnelles.
 - Après la fin de la phase 11 : passer en branches + pull requests.
